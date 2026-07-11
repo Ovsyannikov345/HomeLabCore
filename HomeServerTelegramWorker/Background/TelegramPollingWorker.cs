@@ -71,6 +71,10 @@ public sealed class TelegramPollingWorker(
             {
                 await HandleCommand();
             }
+            else
+            {
+                logger.LogError("Update {UpdateId} can't be handled because of unknown update type.", update.Id);
+            }
         }
         catch (Exception ex)
         {
