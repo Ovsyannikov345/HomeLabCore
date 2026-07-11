@@ -10,6 +10,12 @@ public sealed record SeerrMediaRequest
     [JsonPropertyName("mediaType")]
     public required string MediaType { get; set; }
 
+    [JsonPropertyName("profileId")]
+    public required int ProfileId { get; set; }
+
+    [JsonPropertyName("serverId")]
+    public required int ServerId { get; set; }
+
     [JsonPropertyName("seasons")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<int>? Seasons { get; set; }

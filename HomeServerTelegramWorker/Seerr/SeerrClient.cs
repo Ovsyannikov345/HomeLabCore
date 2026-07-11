@@ -13,10 +13,8 @@ public interface ISeerrClient
     public Task<bool> RequestMedia(string mediaType, int mediaId, CancellationToken ct);
 }
 
-public sealed class SeerrClient(HttpClient httpClient, IOptions<SeerrSettings> options) : ISeerrClient
+public sealed class SeerrClient(HttpClient httpClient) : ISeerrClient
 {
-    private readonly SeerrSettings _settings = options.Value;
-
     public async Task<List<SeerrMedia>> Search(string query, CancellationToken ct)
     {
         var requestUrl = QueryHelpers.AddQueryString("api/v1/search", new Dictionary<string, string?>
@@ -47,6 +45,8 @@ public sealed class SeerrClient(HttpClient httpClient, IOptions<SeerrSettings> o
         {
             MediaId = mediaId,
             MediaType = mediaType,
+            ProfileId = 7, // TODO fetch from seer settings
+            ServerId = 0, // TODO fetch from seer settings
             Seasons = null
         };
 
