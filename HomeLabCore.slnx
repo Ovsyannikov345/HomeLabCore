@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HomeLabCore.Api/HomeLabCore.Api.csproj" />
+  <Project Path="HomeLabCore.Application/HomeLabCore.Application.csproj" />
+  <Project Path="HomeLabCore.Domain/HomeLabCore.Domain.csproj" />
+  <Project Path="HomeLabCore.Infrastructure/HomeLabCore.Infrastructure.csproj" />
+</Solution>
