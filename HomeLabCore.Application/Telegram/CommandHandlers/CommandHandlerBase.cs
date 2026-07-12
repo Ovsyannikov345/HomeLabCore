@@ -1,9 +1,26 @@
-﻿using Telegram.Bot.Types;
+﻿using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace HomeLabCore.Application.Telegram.CommandHandlers;
 
-public abstract class CommandHandlerBase : ICommandHandler
+public interface ICommandHandler
 {
+    public string CommandName { get; }
+
+    public string CommandDescription { get; }
+
+    public string? CommandExample { get; }
+
+    public bool CanHandle(Message message);
+
+    public Task Handle(Message message, CancellationToken ct);
+}
+
+public abstract class CommandHandlerBase(ITelegramBotClient telegramBotClient) : ICommandHandler
+{
+    protected ITelegramBotClient BotClient = telegramBotClient;
+
     public abstract string CommandName { get; }
 
     public abstract string CommandDescription { get; }
@@ -31,11 +48,22 @@ public abstract class CommandHandlerBase : ICommandHandler
         return true;
     }
 
+    // TODO logs here
     public async Task Handle(Message message, CancellationToken ct)
     {
-        // TODO logs here
-        await ProcessUpdate(message, ct);
-        // TODO logs here
+        try
+        {
+            await ProcessUpdate(message, ct);
+        }
+        // TODO add correrlation id to message for debugging
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            await BotClient.SendMessage(
+                chatId: message.Chat.Id,
+                text: $"Something went wrong while processing the command :(",
+                parseMode: ParseMode.Markdown,
+                cancellationToken: ct);
+        }
     }
 
     protected abstract Task ProcessUpdate(Message message, CancellationToken ct);

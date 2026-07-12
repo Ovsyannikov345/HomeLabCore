@@ -9,7 +9,7 @@ namespace HomeLabCore.Application.Telegram.CommandHandlers;
 public sealed class HelpCommandHandler(
     ITelegramBotClient telegramBotClient,
     IServiceScopeFactory serviceScopeFactory)
-    : CommandHandlerBase, ICommandHandler
+    : CommandHandlerBase(telegramBotClient), ICommandHandler
 {
     public override string CommandName => "help";
 
@@ -41,7 +41,7 @@ public sealed class HelpCommandHandler(
             sb.AppendLine();
         }
 
-        await telegramBotClient.SendMessage(
+        await BotClient.SendMessage(
             chatId: message.Chat.Id,
             text: sb.ToString(),
             parseMode: ParseMode.Html,

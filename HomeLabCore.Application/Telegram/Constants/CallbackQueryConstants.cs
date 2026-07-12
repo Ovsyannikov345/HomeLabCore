@@ -7,5 +7,7 @@ public static class CallbackQueryConstants
     public static class Prefixes
     {
         public const string RequestMedia = "REQ_MEDIA";
+
+        public const string ChangePage = "CHN_PAGE";
     }
 }

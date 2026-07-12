@@ -1,19 +1,21 @@
 ﻿using HomeLabCore.Application.Interfaces.Clients;
-using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Payloads;
+using HomeLabCore.Application.Interfaces.Database;
+using HomeLabCore.Application.Telegram.Services;
+using HomeLabCore.Domain.Entities.Media;
 using Microsoft.Extensions.Logging;
-using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace HomeLabCore.Application.Telegram.CommandHandlers;
 
 public sealed class SearchCommandHandler(
+    IApplicationDbContext dbContext,
     ITelegramBotClient telegramBotClient,
     IMediaManagerClient mediaManagerClient,
-    ILogger<SearchCommandHandler> logger) 
-    : CommandHandlerBase, ICommandHandler
+    IMessageRenderer messageRenderer,
+    ILogger<SearchCommandHandler> logger)
+    : CommandHandlerBase(telegramBotClient), ICommandHandler
 {
     private const int SearchResultsTotalCount = 20;
 
@@ -28,11 +30,19 @@ public sealed class SearchCommandHandler(
         // TODO handle already downloaded
         // TODO handle season selection + already downloaded seasons
 
+        // TODO do all handling lifecycle in base class
+        var loadingMessage = await BotClient.SendMessage(
+            chatId: message.Chat.Id,
+            text: "🔍 Searching media...",
+            cancellationToken: ct);
+
+        await Task.Delay(3000, ct);
+
         var searchTerm = GetCommandArgument(message);
 
         if (searchTerm is null)
         {
-            await telegramBotClient.SendMessage(
+            await BotClient.SendMessage(
                 chatId: message.Chat.Id,
                 text: $"Please provide a movie name. Example: `{CommandExample}`",
                 parseMode: ParseMode.Markdown,
@@ -50,69 +60,45 @@ public sealed class SearchCommandHandler(
 
         if (searchResults.Count == 0)
         {
-            await telegramBotClient.SendMessage(
-                chatId: message.Chat.Id,
-                text: "No results found in Seerr.",
-                cancellationToken: ct);
+            // TODO throw exception and handle in base class
+            await BotClient.EditMessageText(
+                    chatId: message.Chat.Id,
+                    messageId: loadingMessage.MessageId,
+                    text: $"❌ No results found for \"{searchTerm}\".",
+                    cancellationToken: ct);
+
             return;
         }
 
-        // TODO implement "Next" button and pagination
-        var media = searchResults[0];
-
-        var releaseDate = media.ReleaseDate ?? media.FirstAirDate;
-
-        if (releaseDate is not null)
+        var searchSnapshot = new MediaSearchSnapshot
         {
-            releaseDate = $" ({releaseDate[..4]})";
-        }
-
-        var caption = new StringBuilder();
-        caption.AppendLine($"🎬 <b>{media.Title}{releaseDate}</b>");
-        caption.AppendLine($"<i>{media.MediaType.ToString().ToUpper()}</i>\n");
-        caption.AppendLine(media.Overview.Length > 800 ? media.Overview[..800] + "..." : media.Overview);
-
-        var downloadQueryPayload = new RequestMediaPayload
-        {
-            MediaId = media.Id,
-            MediaType = media.MediaType
+            Query = searchTerm,
+            Results = [.. searchResults.Select(m => new MediaSearchSnapshotEntry
+            {
+                Id = m.Id,
+                MediaType = m.MediaType,
+                Title = m.Title,
+                Overview = m.Overview,
+                ReleaseDate = m.ReleaseDate,
+                FirstAirDate = m.FirstAirDate,
+                PosterPath = m.PosterPath
+            })]
         };
 
-        var buttons = new List<InlineKeyboardButton>
-        {
-            InlineKeyboardButton.WithCallbackData(
-            text: "⬇️ Download",
-            callbackData: downloadQueryPayload.ToCallbackQueryString())
-        };
+        dbContext.Add(searchSnapshot);
+        await dbContext.SaveChanges(ct);
 
-        // TODO implement "Next" button and pagination
-        if (true)
-        {
-            buttons.Add(InlineKeyboardButton.WithCallbackData(
-                text: "➡️ Next",
-                callbackData: "dummy payload"));
-        }
-
-        var keyboard = new InlineKeyboardMarkup(buttons);
-
-        if (!string.IsNullOrEmpty(media.PosterPath))
-        {
-            await telegramBotClient.SendPhoto(
+        await messageRenderer.SendMediaPage(
                 chatId: message.Chat.Id,
-                photo: InputFile.FromUri(media.PosterPath),
-                caption: caption.ToString(),
-                parseMode: ParseMode.Html,
-                replyMarkup: keyboard,
-                cancellationToken: ct);
-        }
-        else
-        {
-            await telegramBotClient.SendMessage(
-                chatId: message.Chat.Id,
-                text: caption.ToString(),
-                parseMode: ParseMode.Html,
-                replyMarkup: keyboard,
-                cancellationToken: ct);
-        }
+                media: searchResults[0],
+                searchId: searchSnapshot.Id,
+                currentIndex: 0,
+                hasNext: searchResults.Count > 1,
+                ct: ct);
+
+        await BotClient.DeleteMessage(
+            chatId: message.Chat.Id,
+            messageId: loadingMessage.MessageId,
+            cancellationToken: ct);
     }
 }

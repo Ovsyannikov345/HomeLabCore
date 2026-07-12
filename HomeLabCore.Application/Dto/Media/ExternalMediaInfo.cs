@@ -1,4 +1,5 @@
 ﻿using HomeLabCore.Domain.Constants.Enums;
+using HomeLabCore.Domain.Entities.Media;
 
 namespace HomeLabCore.Application.Dto.Media;
 
@@ -17,4 +18,18 @@ public sealed record ExternalMediaInfo
     public string? FirstAirDate { get; init; }
 
     public string? PosterPath { get; init; }
+
+    public static ExternalMediaInfo FromSnapshot(MediaSearchSnapshotEntry snapshot)
+    {
+        return new ExternalMediaInfo
+        {
+            Id = snapshot.Id,
+            MediaType = snapshot.MediaType,
+            Title = snapshot.Title,
+            Overview = snapshot.Overview,
+            ReleaseDate = snapshot.ReleaseDate,
+            FirstAirDate = snapshot.FirstAirDate,
+            PosterPath = snapshot.PosterPath
+        };
+    }
 }

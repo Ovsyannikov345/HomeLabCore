@@ -1,8 +1,11 @@
 ﻿namespace HomeLabCore.Application.Telegram.Exceptions;
 
-public sealed class CallbackQueryProcessingException(string message, Exception? innerException) : Exception(message, innerException)
+public sealed class CallbackQueryProcessingException : Exception
 {
-    public CallbackQueryProcessingException(string message) : this(message, null)
+    public bool ShowMessageToUser { get; }
+
+    public CallbackQueryProcessingException(string message, bool showToUser = false) : base(message, null)
     {
+        ShowMessageToUser = showToUser;
     }
 }

@@ -4,12 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers.Payloads;
 
-public sealed record RequestMediaPayload : ICallbackQueryPayload<RequestMediaPayload>
+public sealed record RequestMediaPayload(MediaType MediaType, int MediaId) : ICallbackQueryPayload<RequestMediaPayload>
 {
-    public required MediaType MediaType { get; init; }
-
-    public required int MediaId { get; init; }
-
     public static bool TryParse(string data, [NotNullWhen(true)] out RequestMediaPayload? payload)
     {
         payload = null;
@@ -21,11 +17,7 @@ public sealed record RequestMediaPayload : ICallbackQueryPayload<RequestMediaPay
             && Enum.TryParse(parts[1], out MediaType type)
             && int.TryParse(parts[2], out var id))
         {
-            payload = new RequestMediaPayload
-            {
-                MediaType = type,
-                MediaId = id
-            };
+            payload = new RequestMediaPayload(type, id);
 
             return true;
         }

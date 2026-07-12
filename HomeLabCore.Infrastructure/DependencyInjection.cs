@@ -1,8 +1,10 @@
-﻿using HomeLabCore.Application.Interfaces.Clients;
+﻿using HomeLabCore.Application.Interfaces;
+using HomeLabCore.Application.Interfaces.Clients;
 using HomeLabCore.Application.Interfaces.Database;
 using HomeLabCore.Infrastructure.Common.Constants;
 using HomeLabCore.Infrastructure.Database;
 using HomeLabCore.Infrastructure.Database.Interceptors;
+using HomeLabCore.Infrastructure.Initializers;
 using HomeLabCore.Infrastructure.Seerr;
 using HomeLabCore.Infrastructure.Seerr.Configuration;
 using HomeLabCore.Infrastructure.Seerr.Handlers;
@@ -64,6 +66,9 @@ public static class DependencyInjection
                 .UseNpgsql(configuration.GetConnectionString(ConnectionStringNames.Database))
                 .AddInterceptors(interceptor);
         });
+
+        // Initializers
+        services.AddScoped<IApplicationInitializer, DatabaseInitializer>();
 
         return services;
     }

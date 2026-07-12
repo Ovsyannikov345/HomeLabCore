@@ -6,10 +6,10 @@ public sealed class MediaSearchSnapshot : EntityBase
 {
     public required string Query { get; set; }
 
-    public required List<MediaSearchResultEntry> Results { get; set; }
+    public required List<MediaSearchSnapshotEntry> Results { get; set; }
 }
 
-public sealed record MediaSearchResultEntry
+public sealed record MediaSearchSnapshotEntry
 {
     public int Id { get; init; }
 

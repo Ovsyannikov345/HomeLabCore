@@ -12,7 +12,7 @@ namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers;
 public sealed class RequestMediaQueryHandler(
     ITelegramBotClient telegramBotClient,
     IMediaManagerClient mediaManagerClient) 
-    : CallbackQueryHandlerBase<RequestMediaPayload>(telegramBotClient)
+    : CallbackQueryHandlerBase<RequestMediaPayload>(telegramBotClient), ICallbackQueryHandler
 {
     protected override string QueryPrefix => CallbackQueryConstants.Prefixes.RequestMedia;
 
@@ -48,7 +48,7 @@ public sealed class RequestMediaQueryHandler(
         }
         else
         {
-            throw new CallbackQueryProcessingException("Failed to request the media from Seerr.");
+            throw new CallbackQueryProcessingException("Failed to request the media from Seerr.", showToUser: true);
         }
     }
 }

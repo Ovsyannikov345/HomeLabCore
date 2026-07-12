@@ -48,11 +48,15 @@ public abstract class CallbackQueryHandlerBase<TPayload>(ITelegramBotClient tele
         // TODO add correrlation id to message for debugging
         catch (CallbackQueryProcessingException ex)
         {
+            var errorMessage = ex.ShowMessageToUser
+                ? ex.Message
+                : "Something went wrong :(";
+
             if (callbackQuery.Message is { } message)
             {
                 var caption = callbackQuery.Message!.Caption ?? callbackQuery.Message.Text;
 
-                var updatedCaption = caption + $"\n\n❌ <b>{ex.Message}</b>";
+                var updatedCaption = caption + $"\n\n❌ <b>{errorMessage}</b>";
 
                 await BotClient.EditMessageCaption(
                     chatId: message.Chat.Id,
