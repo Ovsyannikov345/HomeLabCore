@@ -36,20 +36,24 @@ public sealed class SearchCommandHandler(
             text: "🔍 Searching media...",
             cancellationToken: ct);
 
-        await Task.Delay(3000, ct);
+        await Task.Delay(1000, ct);
 
         var searchTerm = GetCommandArgument(message);
 
         if (searchTerm is null)
         {
-            await BotClient.SendMessage(
-                chatId: message.Chat.Id,
-                text: $"Please provide a movie name. Example: `{CommandExample}`",
-                parseMode: ParseMode.Markdown,
-                cancellationToken: ct);
+            // TODO throw exception and handle in base class
+            await BotClient.EditMessageText(
+                    chatId: message.Chat.Id,
+                    messageId: loadingMessage.MessageId,
+                    text: $"❌ Please provide a movie name. Example: `{CommandExample}`",
+                    parseMode: ParseMode.Markdown,
+                    cancellationToken: ct);
 
             return;
         }
+
+        await Task.Delay(2000, ct);
 
         searchTerm = searchTerm.Trim();
 
