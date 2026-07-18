@@ -1,12 +1,15 @@
 ﻿using HomeLabCore.Application;
 using HomeLabCore.Infrastructure;
+using Serilog;
 
 namespace HomeLabCore.Api.Setup;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection ConfigureApplication(this IHostApplicationBuilder applicationBuilder)
+    public static IServiceCollection ConfigureApplication(this WebApplicationBuilder applicationBuilder)
     {
+        AddLogging(applicationBuilder);
+
         var configuration = applicationBuilder.Configuration;
 
         return applicationBuilder.Services
@@ -16,8 +19,18 @@ public static class DependencyInjection
             .AddApiServices();
     }
 
+    private static void AddLogging(this WebApplicationBuilder applicationBuilder)
+    {
+        applicationBuilder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext());
+    }
+
     private static IServiceCollection AddApiServices(this IServiceCollection services)
     {
+        Log.Information("Configuring HomeLabCore.API services...");
+
         return services.AddOpenApi();
     }
 }
