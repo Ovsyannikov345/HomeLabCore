@@ -53,5 +53,11 @@ internal static partial class ApplicationLogs
             "Request body: {RequestBody}. Response body: {ResponseBody}")]
     public static partial void SeerrApiCallFailed(this ILogger logger, HttpMethod method, string? url, int statusCode, string requestBody, string responseBody);
 
+    [LoggerMessage(
+        EventId = 2_0002_0002,
+        Level = LogLevel.Warning,
+        Message = "Call to Seerr API failed. Method: {Method}. Request URL: {Url}")]
+    public static partial void SeerrApiCallFailed(this ILogger logger, HttpMethod method, string? url, Exception ex);
+
     #endregion
 }

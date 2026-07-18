@@ -1,5 +1,6 @@
 ﻿using HomeLabCore.Api.Constants;
 using HomeLabCore.Shared.Constants;
+using HomeLabCore.Shared.Contexts;
 using Serilog.Context;
 
 namespace HomeLabCore.Api.Middleware;
@@ -12,9 +13,15 @@ public class CorrelationIdMiddleware : IMiddleware
 
         var correlationId = receivedCorrelationIds.FirstOrDefault();
 
-        if (string.IsNullOrWhiteSpace(correlationId))
+        if (string.IsNullOrWhiteSpace(correlationId) || !Guid.TryParse(correlationId, out _))
         {
-            correlationId = context.TraceIdentifier;
+            // TODO log here
+
+            correlationId = CorrelationContext.CorrelationId;
+        }
+        else
+        {
+            CorrelationContext.CorrelationId = correlationId;
         }
 
         using (LogContext.PushProperty(LogPropertyNames.CorrelationId, correlationId))

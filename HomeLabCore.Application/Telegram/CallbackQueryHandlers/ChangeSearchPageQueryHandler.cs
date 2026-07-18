@@ -1,6 +1,7 @@
 ﻿using HomeLabCore.Application.Dto.Media;
 using HomeLabCore.Application.Interfaces.Clients;
 using HomeLabCore.Application.Interfaces.Database;
+using HomeLabCore.Application.Logging;
 using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Payloads;
 using HomeLabCore.Application.Telegram.Configuration;
@@ -10,19 +11,20 @@ using HomeLabCore.Application.Telegram.Services;
 using HomeLabCore.Domain.Constants.Enums;
 using HomeLabCore.Domain.Entities.Media;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 
 namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers;
 
-// TODO add logging
 internal sealed class ChangeSearchPageQueryHandler(
     IApplicationDbContext dbContext,
     ITelegramBotClient telegramBotClient,
     IMediaManagerClient mediaManagerClient,
     IMessageRenderer messageRenderer,
-    IOptionsSnapshot<TelegramSettings> options)
-    : CallbackQueryHandlerBase<ChangeSearchPagePayload>(telegramBotClient, options), ICallbackQueryHandler
+    IOptionsSnapshot<TelegramSettings> options,
+    ILogger<ChangeSearchPageQueryHandler> logger)
+    : CallbackQueryHandlerBase<ChangeSearchPagePayload>(telegramBotClient, options, logger)
 {
     protected override string QueryPrefix => CallbackQueryConstants.Prefixes.ChangePage;
 
@@ -62,7 +64,7 @@ internal sealed class ChangeSearchPageQueryHandler(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // TODO log
+            Logger.FailedToFetchLatestMediaStatus(mediaInfo.MediaType, mediaInfo.Id);
         }
 
         var hasNext = payload.NextIndex < searchSnapshot.Results.Count - 1;

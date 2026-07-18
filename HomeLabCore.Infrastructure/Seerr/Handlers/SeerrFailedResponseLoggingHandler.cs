@@ -7,7 +7,18 @@ internal sealed class SeerrFailedResponseLoggingHandler(ILogger<SeerrFailedRespo
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var response = await base.SendAsync(request, cancellationToken);
+        HttpResponseMessage response;
+
+        try
+        {
+            response = await base.SendAsync(request, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.SeerrApiCallFailed(request.Method, request.RequestUri?.ToString(), ex);
+
+            throw;
+        }
 
         if (!response.IsSuccessStatusCode)
         {

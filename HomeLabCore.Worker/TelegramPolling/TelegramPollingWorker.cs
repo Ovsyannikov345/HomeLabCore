@@ -3,6 +3,7 @@ using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.CommandHandlers;
 using HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 using HomeLabCore.Shared.Constants;
+using HomeLabCore.Shared.Contexts;
 using HomeLabCore.Worker.Logging;
 using HomeLabCore.Worker.TelegramPolling.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,7 +56,7 @@ internal sealed class TelegramPollingWorker(
 
     private async Task HandleUpdate(ITelegramBotClient bot, Update update, CancellationToken ct)
     {
-        using var correlationContext = LogContext.PushProperty(LogPropertyNames.CorrelationId, Guid.CreateVersion7().ToString("N"));
+        using var correlationContext = LogContext.PushProperty(LogPropertyNames.CorrelationId, CorrelationContext.CorrelationId);
         using var updateIdContext = LogContext.PushProperty(WorkerLogPropertyNames.TelegramUpdateId, update.Id);
 
         try
@@ -130,7 +131,7 @@ internal sealed class TelegramPollingWorker(
 
     private Task HandlePollingError(ITelegramBotClient bot, Exception exception, CancellationToken ct)
     {
-        using var correlationContext = LogContext.PushProperty(LogPropertyNames.CorrelationId, Guid.CreateVersion7().ToString("N"));
+        using var correlationContext = LogContext.PushProperty(LogPropertyNames.CorrelationId, CorrelationContext.CorrelationId);
 
         logger.TelegramUpdatePollingFailed(exception);
 
