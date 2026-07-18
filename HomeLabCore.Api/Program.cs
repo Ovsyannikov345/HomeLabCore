@@ -1,3 +1,4 @@
+using HomeLabCore.Api.Middleware;
 using HomeLabCore.Api.Setup;
 using Serilog;
 
@@ -21,6 +22,10 @@ try
     {
         app.MapOpenApi();
     }
+
+    app.UseMiddleware<CorrelationIdMiddleware>();
+
+    app.UseSerilogRequestLogging();
 
     app.MapEndpoints();
 
