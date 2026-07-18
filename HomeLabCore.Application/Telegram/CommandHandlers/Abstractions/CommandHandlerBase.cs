@@ -108,7 +108,7 @@ internal abstract class CommandHandlerBase(
 
     protected async Task RespondWithText(string text, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(_context, nameof(_context));
+        ArgumentNullException.ThrowIfNull(_context);
 
         await BotClient.EditMessageText(
             chatId: _context.BotResponseMessage.Chat.Id,
@@ -120,7 +120,7 @@ internal abstract class CommandHandlerBase(
 
     protected async Task RespondWithMessage(TelegramMessage message, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(_context, nameof(_context));
+        ArgumentNullException.ThrowIfNull(_context);
 
         if (message.Photo is not null)
         {

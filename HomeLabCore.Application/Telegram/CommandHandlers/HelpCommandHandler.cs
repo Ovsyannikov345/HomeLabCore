@@ -36,13 +36,13 @@ internal sealed class HelpCommandHandler(
         sb.AppendLine("I run in the background to automatically send you updates and alerts from our server services.\n");
         sb.AppendLine("I am also capable of doing some cool things. Here is what I can do for you:\n");
 
-        foreach (var handler in commandHandlers)
+        foreach (var handlerOptions in commandHandlers.Select(handler => handler.HandlerOptions))
         {
-            sb.AppendLine($"🔹 **/{handler.HandlerOptions.CommandName}** — {handler.HandlerOptions.CommandDescription}");
+            sb.AppendLine($"🔹 **/{handlerOptions.CommandName}** — {handlerOptions.CommandDescription}");
 
-            if (!string.IsNullOrWhiteSpace(handler.HandlerOptions.CommandExample))
+            if (!string.IsNullOrWhiteSpace(handlerOptions.CommandExample))
             {
-                sb.AppendLine($"    ↳ 💡 *Example:* `{handler.HandlerOptions.CommandExample}`");
+                sb.AppendLine($"    ↳ 💡 *Example:* `{handlerOptions.CommandExample}`");
             }
 
             sb.AppendLine();

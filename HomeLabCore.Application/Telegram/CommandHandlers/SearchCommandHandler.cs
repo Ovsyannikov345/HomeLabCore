@@ -40,8 +40,6 @@ internal sealed class SearchCommandHandler(
             throw new CommandProcessingException($"Please provide a media name. Example: `{HandlerOptions.CommandExample}`", showToUser: true);
         }
 
-        await Task.Delay(2000, ct);
-
         searchTerm = searchTerm.Trim();
 
         // TODO proper logging

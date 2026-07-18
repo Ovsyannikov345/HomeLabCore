@@ -9,14 +9,14 @@ public interface IFallbackCallbackQueryHandler
     public Task Handle(CallbackQuery callbackQuery, CancellationToken ct);
 }
 
-internal class FallbackCallbackQueryHandler(ITelegramBotClient telegramBotClient, ILogger<FallbackCallbackQueryHandler> logger) 
+internal class FallbackCallbackQueryHandler(ITelegramBotClient telegramBotClient, ILogger<FallbackCallbackQueryHandler> logger)
     : IFallbackCallbackQueryHandler
 {
     public async Task Handle(CallbackQuery callbackQuery, CancellationToken ct)
     {
         logger.LogWarning("No handler found for callback query {CallbackQueryId}. Sending fallback message.", callbackQuery.Id);
 
-        await telegramBotClient.AnswerCallbackQuery(callbackQuery.Id);
+        await telegramBotClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: ct);
 
         if (callbackQuery.Message is { } message)
         {

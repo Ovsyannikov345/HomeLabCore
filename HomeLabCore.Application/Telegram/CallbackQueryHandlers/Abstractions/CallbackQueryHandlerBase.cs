@@ -122,7 +122,7 @@ internal abstract class CallbackQueryHandlerBase<TPayload>(
 
     protected async Task RespondWithMessage(TelegramMessage message, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(_context, nameof(_context));
+        ArgumentNullException.ThrowIfNull(_context);
 
         if (message.Photo is not null)
         {
@@ -147,7 +147,7 @@ internal abstract class CallbackQueryHandlerBase<TPayload>(
 
     protected async Task UpdateMessageKeyboard(InlineKeyboardMarkup keyboard, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(_context, nameof(_context));
+        ArgumentNullException.ThrowIfNull(_context);
 
         await BotClient.EditMessageReplyMarkup(
             _context.SourceMessage.Chat.Id,
@@ -158,7 +158,7 @@ internal abstract class CallbackQueryHandlerBase<TPayload>(
 
     protected async Task DeleteOriginalMessage(CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(_context, nameof(_context));
+        ArgumentNullException.ThrowIfNull(_context);
 
         await BotClient.DeleteMessage(
             chatId: _context.SourceMessage.Chat.Id,
