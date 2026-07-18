@@ -78,11 +78,10 @@ internal abstract class CommandHandlerBase(
                 return;
             }
 
-            // TODO change icon
             // TODO this should be controlled by handlers. Sometimes there's no need for message
             botResponseMessage = await BotClient.SendMessage(
                 chatId: message.Chat.Id,
-                text: "🔍 **Processing request...**",
+                text: "⏳ **Processing request...**",
                 parseMode: ParseMode.Markdown,
                 cancellationToken: ct);
 
