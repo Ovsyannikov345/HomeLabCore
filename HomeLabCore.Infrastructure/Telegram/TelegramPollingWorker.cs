@@ -1,6 +1,6 @@
-﻿using HomeLabCore.Application.Telegram;
-using HomeLabCore.Application.Telegram.CallbackQueryHandlers;
+﻿using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.CommandHandlers;
+using HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 using HomeLabCore.Infrastructure.Telegram.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -77,7 +77,7 @@ internal sealed class TelegramPollingWorker(
         }
         else
         {
-            var fallbackHandler = scope.ServiceProvider.GetRequiredService<IFallbackHandler>();
+            var fallbackHandler = scope.ServiceProvider.GetRequiredService<IFallbackCommandHandler>();
 
             await fallbackHandler.Handle(message, ct);
         }

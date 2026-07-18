@@ -1,4 +1,4 @@
-﻿namespace HomeLabCore.Application.Telegram.CommandHandlers;
+﻿namespace HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 
 public sealed record CommandHandlerOptions
 {

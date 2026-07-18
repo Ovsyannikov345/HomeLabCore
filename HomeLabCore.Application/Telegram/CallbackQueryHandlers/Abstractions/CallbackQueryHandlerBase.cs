@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers;
+namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 
 public interface ICallbackQueryHandler
 {

@@ -6,7 +6,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace HomeLabCore.Application.Telegram.CommandHandlers;
+namespace HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 
 public interface ICommandHandler
 {

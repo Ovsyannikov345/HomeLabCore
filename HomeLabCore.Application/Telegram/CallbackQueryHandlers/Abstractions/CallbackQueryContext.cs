@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 
-namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers;
+namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 
 public sealed record CallbackQueryContext
 {
