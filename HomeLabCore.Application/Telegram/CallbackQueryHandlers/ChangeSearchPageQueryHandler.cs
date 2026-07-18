@@ -47,14 +47,22 @@ internal sealed class ChangeSearchPageQueryHandler(
         var snapshotEntry = searchSnapshot.Results[payload.NextIndex];
 
         var mediaInfo = ExternalMediaInfo.FromSnapshot(snapshotEntry);
-        
-        // TODO handle series
-        if (mediaInfo.MediaType is MediaType.Movie)
+
+        // If the user requested a media, snapshot status becomes irrelevant
+        try
         {
-            mediaInfo = mediaInfo with
+            // TODO handle series
+            if (mediaInfo.MediaType is MediaType.Movie)
             {
-                Status = await mediaManagerClient.GetMediaStatus(snapshotEntry.MediaType, snapshotEntry.Id, ct)
-            };
+                mediaInfo = mediaInfo with
+                {
+                    Status = await mediaManagerClient.GetMediaStatus(snapshotEntry.MediaType, snapshotEntry.Id, ct)
+                };
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // TODO log
         }
 
         var hasNext = payload.NextIndex < searchSnapshot.Results.Count - 1;

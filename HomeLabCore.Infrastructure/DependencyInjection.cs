@@ -38,13 +38,16 @@ public static class DependencyInjection
 
         // HTTP Clients
         services.AddTransient<SeerrAuthorizationHandler>();
+        services.AddTransient<SeerrFailedResponseLoggingHandler>();
 
         services.AddHttpClient<IMediaManagerClient, SeerrClient>((serviceProvider, client) =>
         {
             var seerSettings = serviceProvider.GetRequiredService<IOptionsMonitor<SeerrSettings>>();
 
             client.BaseAddress = new Uri(seerSettings.CurrentValue.BaseUrl, UriKind.Absolute);
-        }).AddHttpMessageHandler<SeerrAuthorizationHandler>();
+        })
+        .AddHttpMessageHandler<SeerrAuthorizationHandler>()
+        .AddHttpMessageHandler<SeerrFailedResponseLoggingHandler>();
 
         // Telegram
         services.AddSingleton<ITelegramBotClient>(sp =>

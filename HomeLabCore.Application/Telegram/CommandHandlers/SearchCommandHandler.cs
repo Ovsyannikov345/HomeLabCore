@@ -1,4 +1,5 @@
-﻿using HomeLabCore.Application.Interfaces.Clients;
+﻿using HomeLabCore.Application.Dto.Media;
+using HomeLabCore.Application.Interfaces.Clients;
 using HomeLabCore.Application.Interfaces.Database;
 using HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.Configuration;
@@ -45,7 +46,17 @@ internal sealed class SearchCommandHandler(
         // TODO proper logging
         logger.LogInformation("Chat {ChatId} searching for: {Query}", message.Chat.Id, searchTerm);
 
-        var searchResults = await mediaManagerClient.Search(searchTerm, SearchResultsTotalCount, ct);
+        List<ExternalMediaInfo> searchResults;
+
+        try
+        {
+            searchResults = await mediaManagerClient.Search(searchTerm, SearchResultsTotalCount, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // TODO log here
+            throw new CommandProcessingException($"Can't search media: Seerr responded with failure", showToUser: true);
+        }
 
         if (searchResults.Count == 0)
         {
