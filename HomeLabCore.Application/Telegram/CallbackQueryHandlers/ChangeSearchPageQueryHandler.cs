@@ -51,33 +51,7 @@ internal sealed class ChangeSearchPageQueryHandler(
 
         var mediaInfo = ExternalMediaInfo.FromSnapshot(snapshotEntry);
 
-        // If the user requested a media, snapshot status becomes irrelevant
-        try
-        {
-            // TODO handle series
-            if (mediaInfo.MediaType is MediaType.Movie)
-            {
-                mediaInfo = mediaInfo with
-                {
-                    Status = await mediaManagerClient.GetMediaStatus(snapshotEntry.MediaType, snapshotEntry.Id, ct)
-                };
-            }
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            Logger.FailedToFetchLatestMediaStatus(mediaInfo.MediaType, mediaInfo.Id);
-        }
-
-        var renderingPayload = new MovieRenderingPayload
-        {
-            Id = mediaInfo.Id,
-            Title = mediaInfo.Title,
-            Overview = mediaInfo.Overview,
-            Status = mediaInfo.Status,
-            ReleaseDate = mediaInfo.ReleaseDate,
-            FirstAirDate = mediaInfo.FirstAirDate,
-            PosterPath = mediaInfo.PosterPath
-        };
+        var renderingPayload = await GetMediaRenderingPayload(mediaInfo, ct);
 
         var hasNext = payload.NextIndex < searchSnapshot.Results.Count - 1;
 
@@ -92,5 +66,55 @@ internal sealed class ChangeSearchPageQueryHandler(
 
         await RespondWithMessage(mediaPage, ct);
         await DeleteOriginalMessage(CancellationToken.None);
+    }
+
+    private async Task<MediaRenderingPayload> GetMediaRenderingPayload(ExternalMediaInfo mediaInfo, CancellationToken ct)
+    {
+        if (mediaInfo.MediaType is MediaType.Movie)
+        {
+            var latestStatus = mediaInfo.Status;
+
+            try
+            {
+                latestStatus = await mediaManagerClient.GetMediaStatus(mediaInfo.MediaType, mediaInfo.Id, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Logger.FailedToFetchLatestMediaStatus(mediaInfo.MediaType, mediaInfo.Id);
+            }
+
+            return new MovieRenderingPayload
+            {
+                Id = mediaInfo.Id,
+                Title = mediaInfo.Title,
+                Overview = mediaInfo.Overview,
+                Status = latestStatus,
+                ReleaseDate = mediaInfo.ReleaseDate,
+                FirstAirDate = mediaInfo.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath
+            };
+        }
+
+        if (mediaInfo.MediaType is MediaType.Series)
+        {
+            var seriesDetails = await mediaManagerClient.GetSeriesDetails(mediaInfo.Id, ct);
+
+            return new SeriesRenderingPayload
+            {
+                Id = seriesDetails.Id,
+                Title = seriesDetails.Name,
+                Overview = seriesDetails.Overview,
+                FirstAirDate = seriesDetails.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath,
+                Seasons = [.. seriesDetails.Seasons.Select(s => new SeriesRenderingPayload.Season
+                {
+                    Id = s.Id,
+                    Number = s.SeasonNumber,
+                    Status = s.Status
+                })]
+            };
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(mediaInfo), "Unknown media type");
     }
 }
