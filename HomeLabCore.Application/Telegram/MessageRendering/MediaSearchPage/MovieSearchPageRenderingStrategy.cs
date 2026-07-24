@@ -36,8 +36,8 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
     {
         var caption = new StringBuilder();
 
-        caption.AppendLine($"🎬 **{moviePayload.Title}{GetFormattedReleaseYear()}**");
-        caption.AppendLine($"*{MediaType.Movie.ToString().ToUpper()}*\n");
+        caption.AppendLine($"🎬 <b>{moviePayload.Title}{GetFormattedReleaseYear()}</b>");
+        caption.AppendLine($"{MediaType.Movie.ToString().ToUpper()}\n");
         caption.AppendLine(moviePayload.Overview.Length > 800 ? $"{moviePayload.Overview.AsSpan(0, 800)}..." : moviePayload.Overview);
 
         return caption.ToString();

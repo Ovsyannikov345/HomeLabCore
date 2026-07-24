@@ -34,17 +34,17 @@ internal sealed class HelpCommandHandler(
 
         var sb = new StringBuilder();
 
-        sb.AppendLine("👋 **Hi there! I'm your home server bot.**\n");
+        sb.AppendLine("👋 <b>Hi there! I'm your home server bot.</b>\n");
         sb.AppendLine("I run in the background to automatically send you updates and alerts from our server services.\n");
         sb.AppendLine("I am also capable of doing some cool things. Here is what I can do for you:\n");
 
         foreach (var handlerOptions in commandHandlers.Select(handler => handler.HandlerOptions))
         {
-            sb.AppendLine($"🔹 **/{handlerOptions.CommandName}** — {handlerOptions.CommandDescription}");
+            sb.AppendLine($"🔹 <b>/{handlerOptions.CommandName}</b> — {handlerOptions.CommandDescription}");
 
             if (!string.IsNullOrWhiteSpace(handlerOptions.CommandExample))
             {
-                sb.AppendLine($"    ↳ 💡 *Example:* `{handlerOptions.CommandExample}`");
+                sb.AppendLine($"    ↳ 💡 <i>Example:</i> `{handlerOptions.CommandExample}`");
             }
 
             sb.AppendLine();

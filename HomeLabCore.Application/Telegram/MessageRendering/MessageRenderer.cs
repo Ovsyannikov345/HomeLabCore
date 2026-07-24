@@ -1,7 +1,7 @@
 ﻿using HomeLabCore.Application.Telegram.Dto;
 using HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
 
-namespace HomeLabCore.Application.Telegram.Services;
+namespace HomeLabCore.Application.Telegram.MessageRendering;
 
 internal interface IMessageRenderer
 {

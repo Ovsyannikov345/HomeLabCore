@@ -43,8 +43,8 @@ internal sealed class SeriesSearchPageRenderingStrategy : IMediaSearchPageRender
 
         var caption = new StringBuilder();
 
-        caption.AppendLine($"📺 **{seriesPayload.Title}{releaseDate}**");
-        caption.AppendLine($"*{MediaType.Series.ToString().ToUpper()} - {seriesPayload.Seasons.Length} seasons*\n");
+        caption.AppendLine($"📺 <b>{seriesPayload.Title}{releaseDate}</b>");
+        caption.AppendLine($"{MediaType.Series.ToString().ToUpper()} - {seriesPayload.Seasons.Length} seasons\n");
         caption.AppendLine(seriesPayload.Overview.Length > 800 ? seriesPayload.Overview[..800] + "..." : seriesPayload.Overview);
 
         return caption.ToString();

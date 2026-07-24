@@ -120,7 +120,7 @@ internal abstract class CallbackQueryHandlerBase<TPayload>(
                 chatId: _context.SourceMessage.Chat.Id,
                 photo: message.Photo,
                 caption: message.Caption,
-                parseMode: ParseMode.Markdown,
+                parseMode: ParseMode.Html,
                 replyMarkup: message.Keyboard,
                 cancellationToken: ct);
         }
@@ -129,7 +129,7 @@ internal abstract class CallbackQueryHandlerBase<TPayload>(
             await BotClient.SendMessage(
                 chatId: _context.SourceMessage.Chat.Id,
                 text: message.Caption,
-                parseMode: ParseMode.Markdown,
+                parseMode: ParseMode.Html,
                 replyMarkup: message.Keyboard,
                 cancellationToken: ct);
         }
@@ -170,13 +170,13 @@ internal abstract class CallbackQueryHandlerBase<TPayload>(
         }
 
         var caption = message.Caption ?? message.Text;
-        var updatedCaption = caption + $"\n\n❌ **{errorMessage}** \n\n🔍 Correlation ID: {CorrelationContext.CorrelationId}";
+        var updatedCaption = caption + $"\n\n❌ <b>{errorMessage}</b> \n\n🔍 Correlation ID: {CorrelationContext.CorrelationId}";
 
         await BotClient.EditMessageCaption(
             chatId: message.Chat.Id,
             messageId: message.MessageId,
             caption: updatedCaption,
-            parseMode: ParseMode.Markdown,
+            parseMode: ParseMode.Html,
             replyMarkup: null,
             cancellationToken: ct);
     }

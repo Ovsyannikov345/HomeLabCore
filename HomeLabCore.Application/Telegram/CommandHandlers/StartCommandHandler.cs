@@ -32,14 +32,14 @@ internal sealed class StartCommandHandler(
         if (userId is not null && Settings.UserIdWhitelist.Contains(userId.Value))
         {
             var alreadyWhitelistedText = $"""
-            👋 **Welcome, {firstName}!**
+            👋 <b>Welcome, {firstName}!</b>
 
             You're already whitelisted. Anyways, here are your ID's:
 
-            👤 **User ID:** `{userId}`
-            💬 **Chat ID:** `{chatId}`
+            👤 <b>User ID:</b> `{userId}`
+            💬 <b>Chat ID:</b> `{chatId}`
 
-            *Use /help command to get started.*
+            <i>Use /help command to get started.</i>
             """;
 
             await RespondWithText(alreadyWhitelistedText, ct);
@@ -48,17 +48,17 @@ internal sealed class StartCommandHandler(
         }
 
         var greetingText = $"""
-        👋 **Welcome, {firstName}!**
+        👋 <b>Welcome, {firstName}!</b>
 
         This is a private home server bot. To use it, you must be authorized by the administrator.
 
         Please tap the IDs below to copy them, and send them to the admin to be whitelisted:
 
-        👤 **User ID:** `{userId}`
-        💬 **Chat ID:** `{chatId}`
+        👤 <b>User ID:</b> `{userId}`
+        💬 <b>Chat ID:</b> `{chatId}`
 
-        *Once the admin confirms you are added, you can start talking to me!*
-        *Use /help command to get started.*
+        <i>Once the admin confirms you are added, you can start talking to me!<i>
+        <i>Use /help command to get started.<i>
         """;
 
         await RespondWithText(greetingText, ct);
