@@ -3,6 +3,7 @@ using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.CommandHandlers;
 using HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.Configuration;
+using HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
 using HomeLabCore.Application.Telegram.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,9 @@ public static class DependencyInjection
             .ValidateDataAnnotations();
 
         // Services
-        services.AddScoped<IMessageRenderer, MessageRenderer>();
+        services
+            .AddScoped<IMessageRenderer, MessageRenderer>()
+            .AddScoped<IMediaSearchPageRenderingStrategy, MovieSearchPageRenderingStrategy>();
 
         // Handlers
         services.RegisterTelegramHandlers();

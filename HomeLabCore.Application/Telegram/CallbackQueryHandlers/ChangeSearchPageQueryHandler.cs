@@ -7,6 +7,7 @@ using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Payloads;
 using HomeLabCore.Application.Telegram.Configuration;
 using HomeLabCore.Application.Telegram.Constants;
 using HomeLabCore.Application.Telegram.Exceptions;
+using HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
 using HomeLabCore.Application.Telegram.Services;
 using HomeLabCore.Domain.Constants.Enums;
 using HomeLabCore.Domain.Entities.Media;
@@ -67,13 +68,28 @@ internal sealed class ChangeSearchPageQueryHandler(
             Logger.FailedToFetchLatestMediaStatus(mediaInfo.MediaType, mediaInfo.Id);
         }
 
+        var renderingPayload = new MediaRenderingPayload
+        {
+            Id = mediaInfo.Id,
+            MediaType = mediaInfo.MediaType,
+            Title = mediaInfo.Title,
+            Overview = mediaInfo.Overview,
+            Status = mediaInfo.Status,
+            ReleaseDate = mediaInfo.ReleaseDate,
+            FirstAirDate = mediaInfo.FirstAirDate,
+            PosterPath = mediaInfo.PosterPath
+        };
+
         var hasNext = payload.NextIndex < searchSnapshot.Results.Count - 1;
 
-        var mediaPage = messageRenderer.RenderMediaSearchPage(
-            media: mediaInfo,
-            searchId: payload.SearchId,
-            currentIndex: payload.NextIndex,
-            hasNext: hasNext);
+        var searchContext = new MediaSearchContext
+        {
+            SearchId = payload.SearchId,
+            CurrentIndex = payload.NextIndex,
+            HasNext = hasNext
+        };
+
+        var mediaPage = messageRenderer.RenderMediaSearchPage(renderingPayload, searchContext);
 
         await RespondWithMessage(mediaPage, ct);
         await DeleteOriginalMessage(CancellationToken.None);
