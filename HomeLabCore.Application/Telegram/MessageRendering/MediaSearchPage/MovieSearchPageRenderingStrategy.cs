@@ -94,14 +94,15 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
                 new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex + 1).ToCallbackQueryString()));
         }
 
-        var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>(2);
+        var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>(2)
+        {
+            actionRow
+        };
 
         if (navigationRow.Count > 0)
         {
             keyboardRows.Add(navigationRow);
         }
-
-        keyboardRows.Add(actionRow);
 
         return new InlineKeyboardMarkup(keyboardRows);
     }

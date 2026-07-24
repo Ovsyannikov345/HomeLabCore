@@ -43,7 +43,7 @@ internal sealed class SeriesSearchPageRenderingStrategy : IMediaSearchPageRender
 
         var caption = new StringBuilder();
 
-        caption.AppendLine($"🎬 **{seriesPayload.Title}{releaseDate}**");
+        caption.AppendLine($"📺 **{seriesPayload.Title}{releaseDate}**");
         caption.AppendLine($"*{MediaType.Series.ToString().ToUpper()} - {seriesPayload.Seasons.Length} seasons*\n");
         caption.AppendLine(seriesPayload.Overview.Length > 800 ? seriesPayload.Overview[..800] + "..." : seriesPayload.Overview);
 
@@ -53,28 +53,6 @@ internal sealed class SeriesSearchPageRenderingStrategy : IMediaSearchPageRender
     private static InlineKeyboardMarkup BuildKeyboard(SeriesRenderingPayload seriesPayload, MediaSearchContext searchContext)
     {
         var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>(seriesPayload.Seasons.Length + 1);
-
-        // Build navigation buttons
-        var navigationRow = new List<InlineKeyboardButton>();
-
-        if (searchContext.CurrentIndex > 0)
-        {
-            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
-                "⬅️ Previous",
-                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex - 1).ToCallbackQueryString()));
-        }
-
-        if (searchContext.HasNext)
-        {
-            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
-                "➡️ Next",
-                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex + 1).ToCallbackQueryString()));
-        }
-
-        if (navigationRow.Count > 0)
-        {
-            keyboardRows.Add(navigationRow);
-        }
 
         // Build action buttons for each season
         foreach (var season in seriesPayload.Seasons.Where(s => s.Number != 0).OrderBy(s => s.Number))
@@ -99,6 +77,28 @@ internal sealed class SeriesSearchPageRenderingStrategy : IMediaSearchPageRender
             };
 
             keyboardRows.Add(seasonActionRow);
+        }
+
+        // Build navigation buttons
+        var navigationRow = new List<InlineKeyboardButton>();
+
+        if (searchContext.CurrentIndex > 0)
+        {
+            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                "⬅️ Previous",
+                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex - 1).ToCallbackQueryString()));
+        }
+
+        if (searchContext.HasNext)
+        {
+            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                "➡️ Next",
+                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex + 1).ToCallbackQueryString()));
+        }
+
+        if (navigationRow.Count > 0)
+        {
+            keyboardRows.Add(navigationRow);
         }
 
         return new InlineKeyboardMarkup(keyboardRows);
