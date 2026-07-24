@@ -68,10 +68,9 @@ internal sealed class ChangeSearchPageQueryHandler(
             Logger.FailedToFetchLatestMediaStatus(mediaInfo.MediaType, mediaInfo.Id);
         }
 
-        var renderingPayload = new MediaRenderingPayload
+        var renderingPayload = new MovieRenderingPayload
         {
             Id = mediaInfo.Id,
-            MediaType = mediaInfo.MediaType,
             Title = mediaInfo.Title,
             Overview = mediaInfo.Overview,
             Status = mediaInfo.Status,

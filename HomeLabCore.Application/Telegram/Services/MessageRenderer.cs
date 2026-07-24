@@ -13,7 +13,7 @@ internal class MessageRenderer(IEnumerable<IMediaSearchPageRenderingStrategy> se
 {
     public TelegramMessage RenderMediaSearchPage(MediaRenderingPayload mediaPayload, MediaSearchContext searchContext)
     {
-        var renderingStrategy = searchPageStrategies.First(r => r.CanRender(mediaPayload.MediaType));
+        var renderingStrategy = searchPageStrategies.First(r => r.CanRender(mediaPayload));
 
         return renderingStrategy.RenderMessage(mediaPayload, searchContext);
     }

@@ -27,7 +27,8 @@ public static class DependencyInjection
         // Services
         services
             .AddScoped<IMessageRenderer, MessageRenderer>()
-            .AddScoped<IMediaSearchPageRenderingStrategy, MovieSearchPageRenderingStrategy>();
+            .AddScoped<IMediaSearchPageRenderingStrategy, MovieSearchPageRenderingStrategy>()
+            .AddScoped<IMediaSearchPageRenderingStrategy, SeriesSearchPageRenderingStrategy>();
 
         // Handlers
         services.RegisterTelegramHandlers();

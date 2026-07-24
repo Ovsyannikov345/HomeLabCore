@@ -1,10 +1,12 @@
-﻿using HomeLabCore.Application.Interfaces.Clients;
+﻿using HomeLabCore.Application.Dto.Media;
+using HomeLabCore.Application.Interfaces.Clients;
 using HomeLabCore.Application.Interfaces.Database;
 using HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.Configuration;
 using HomeLabCore.Application.Telegram.Exceptions;
 using HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
 using HomeLabCore.Application.Telegram.Services;
+using HomeLabCore.Domain.Constants.Enums;
 using HomeLabCore.Domain.Entities.Media;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -67,17 +69,7 @@ internal sealed class SearchCommandHandler(
 
         var mediaToShow = searchResults[0];
 
-        var renderingPayload = new MediaRenderingPayload
-        {
-            Id = mediaToShow.Id,
-            MediaType = mediaToShow.MediaType,
-            Title = mediaToShow.Title,
-            Overview = mediaToShow.Overview,
-            Status = mediaToShow.Status,
-            ReleaseDate = mediaToShow.ReleaseDate,
-            FirstAirDate = mediaToShow.FirstAirDate,
-            PosterPath = mediaToShow.PosterPath
-        };
+        var renderingPayload = await GetMediaRenderingPayload(mediaToShow, ct);
 
         var searchContext = new MediaSearchContext
         {
@@ -89,5 +81,44 @@ internal sealed class SearchCommandHandler(
         var mediaPage = messageRenderer.RenderMediaSearchPage(renderingPayload, searchContext);
 
         await RespondWithMessage(mediaPage, ct);
+    }
+
+    private async Task<MediaRenderingPayload> GetMediaRenderingPayload(ExternalMediaInfo mediaInfo, CancellationToken ct)
+    {
+        if (mediaInfo.MediaType is MediaType.Movie)
+        {
+            return new MovieRenderingPayload
+            {
+                Id = mediaInfo.Id,
+                Title = mediaInfo.Title,
+                Overview = mediaInfo.Overview,
+                Status = mediaInfo.Status,
+                ReleaseDate = mediaInfo.ReleaseDate,
+                FirstAirDate = mediaInfo.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath
+            };
+        }
+
+        if (mediaInfo.MediaType is MediaType.Series)
+        {
+            var seriesDetails = await mediaManagerClient.GetSeriesDetails(mediaInfo.Id, ct);
+
+            return new SeriesRenderingPayload
+            {
+                Id = seriesDetails.Id,
+                Title = seriesDetails.Name,
+                Overview = seriesDetails.Overview,
+                FirstAirDate = seriesDetails.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath,
+                Seasons = [.. seriesDetails.Seasons.Select(s => new SeriesRenderingPayload.Season
+                {
+                    Id = s.Id,
+                    Number = s.SeasonNumber,
+                    Status = s.Status
+                })]
+            };
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(mediaInfo), "Unknown media type");
     }
 }

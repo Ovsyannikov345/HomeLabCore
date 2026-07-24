@@ -95,6 +95,46 @@ internal sealed class SeerrClient(HttpClient httpClient, IOptionsMonitor<SeerrSe
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task<ExternalSeriesDetails> GetSeriesDetails(int seriesId, CancellationToken ct)
+    {
+        var requestUrl = $"api/v1/tv/{seriesId}";
+
+        var response = await httpClient.GetFromJsonAsync<SeerSeriesDetailsResponse>(requestUrl, ct);
+
+        ArgumentNullException.ThrowIfNull(response);
+
+        return new ExternalSeriesDetails
+        {
+            Id = response.Id,
+            Name = response.Name,
+            Overview = response.Overview,
+            FirstAirDate = response.FirstAirDate,
+            PosterPath = response.PosterPath,
+            NumberOfSeasons = response.NumberOfSeasons,
+            Seasons = [.. response.Seasons.Select(season => new ExternalSeriesSeasonInfo
+            {
+                Id = season.Id,
+                Name = season.Name,
+                Overview = season.Overview,
+                SeasonNumber = season.SeasonNumber,
+                EpisodeCount = season.EpisodeCount,
+                Status = GetInternalSeriesStatus(season, response.Metadata)
+            })],
+        };
+
+        MediaStatus GetInternalSeriesStatus(SeerSeasonInfo seasonInfo, SeerSeriesMetadata? seriesMetadata)
+        {
+            var metadataEntry = seriesMetadata?.Seasons.FirstOrDefault(seasonMetadata => seasonMetadata.SeasonNumber == seasonInfo.SeasonNumber);
+
+            if (metadataEntry is not null)
+            {
+                return metadataEntry.Status.MapToInternalStatus();
+            }
+
+            return MediaStatus.Unknown;
+        }
+    }
+
     public async Task<MediaStatus> GetMediaStatus(MediaType mediaType, int mediaId, CancellationToken ct)
     {
         // TODO implement series

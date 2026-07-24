@@ -9,5 +9,7 @@ public interface IMediaManagerClient
 
     public Task RequestMedia(MediaType mediaType, int mediaId, CancellationToken ct);
 
+    public Task<ExternalSeriesDetails> GetSeriesDetails(int seriesId, CancellationToken ct);
+
     public Task<MediaStatus> GetMediaStatus(MediaType mediaType, int mediaId, CancellationToken ct);
 }

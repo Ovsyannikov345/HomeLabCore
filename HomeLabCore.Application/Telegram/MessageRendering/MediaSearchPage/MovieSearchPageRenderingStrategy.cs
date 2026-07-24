@@ -12,15 +12,17 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
     // TODO Create provider for static assets
     private const string PlaceholderImagePath = "Assets/Images/no_image_placeholder.png";
 
-    public bool CanRender(MediaType mediaType) => mediaType is MediaType.Movie;
+    public bool CanRender(MediaRenderingPayload mediaPayload) => mediaPayload is MovieRenderingPayload;
 
     public TelegramMessage RenderMessage(MediaRenderingPayload mediaPayload, MediaSearchContext searchContext)
     {
-        var caption = BuildCaption(mediaPayload);
+        var moviePayload = (MovieRenderingPayload)mediaPayload;
 
-        var keyboard = BuildKeyboard(mediaPayload, searchContext);
+        var caption = BuildCaption(moviePayload);
 
-        var photo = GetPhoto(mediaPayload);
+        var keyboard = BuildKeyboard(moviePayload, searchContext);
+
+        var photo = GetPhoto(moviePayload);
 
         return new TelegramMessage()
         {
@@ -30,11 +32,85 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
         };
     }
 
-    private InputFile GetPhoto(MediaRenderingPayload mediaPayload)
+    private static string BuildCaption(MovieRenderingPayload moviePayload)
     {
-        if (!string.IsNullOrWhiteSpace(mediaPayload.PosterPath))
+        var caption = new StringBuilder();
+
+        caption.AppendLine($"🎬 **{moviePayload.Title}{GetFormattedReleaseYear()}**");
+        caption.AppendLine($"*{MediaType.Movie.ToString().ToUpper()}*\n");
+        caption.AppendLine(moviePayload.Overview.Length > 800 ? $"{moviePayload.Overview.AsSpan(0, 800)}..." : moviePayload.Overview);
+
+        return caption.ToString();
+
+        string GetFormattedReleaseYear()
         {
-            return InputFile.FromUri(mediaPayload.PosterPath);
+            var releaseDate = moviePayload.ReleaseDate ?? moviePayload.FirstAirDate;
+
+            if (string.IsNullOrWhiteSpace(releaseDate) || releaseDate.Length < 4)
+            {
+                return "";
+            }
+
+            return $" ({releaseDate.AsSpan(0, 4)})";
+        }
+    }
+
+    private static InlineKeyboardMarkup BuildKeyboard(MovieRenderingPayload moviePayload, MediaSearchContext searchContext)
+    {
+        var actionRow = new InlineKeyboardButton[1];
+
+        if (moviePayload.Status is MediaStatus.Available)
+        {
+            actionRow[0] = InlineKeyboardButton.WithCallbackData(
+                "✅ Available",
+                new EmptyPayload().ToCallbackQueryString());
+        }
+        else if (moviePayload.Status is MediaStatus.Pending or MediaStatus.Processing)
+        {
+            actionRow[0] = InlineKeyboardButton.WithCallbackData(
+                "⏳ Processing...",
+                new EmptyPayload().ToCallbackQueryString());
+        }
+        else
+        {
+            actionRow[0] = InlineKeyboardButton.WithCallbackData(
+                "⬇️ Download",
+                new RequestMediaPayload(MediaType.Movie, moviePayload.Id).ToCallbackQueryString());
+        }
+
+        var navigationRow = new List<InlineKeyboardButton>();
+
+        if (searchContext.CurrentIndex > 0)
+        {
+            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                "⬅️ Previous",
+                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex - 1).ToCallbackQueryString()));
+        }
+
+        if (searchContext.HasNext)
+        {
+            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                "➡️ Next",
+                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex + 1).ToCallbackQueryString()));
+        }
+
+        var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>(2);
+
+        if (navigationRow.Count > 0)
+        {
+            keyboardRows.Add(navigationRow);
+        }
+
+        keyboardRows.Add(actionRow);
+
+        return new InlineKeyboardMarkup(keyboardRows);
+    }
+
+    private static InputFile GetPhoto(MovieRenderingPayload moviePayload)
+    {
+        if (!string.IsNullOrWhiteSpace(moviePayload.PosterPath))
+        {
+            return InputFile.FromUri(moviePayload.PosterPath);
         }
         else
         {
@@ -43,72 +119,5 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
 
             return InputFile.FromStream(fileStream, Path.GetFileName(fullPlaceholderPath));
         }
-    }
-
-    private string BuildCaption(MediaRenderingPayload mediaPayload)
-    {
-        var releaseDate = mediaPayload.ReleaseDate ?? mediaPayload.FirstAirDate;
-
-        if (releaseDate is not null)
-        {
-            releaseDate = $" ({releaseDate[..4]})";
-        }
-
-        var caption = new StringBuilder();
-
-        caption.AppendLine($"🎬 **{mediaPayload.Title}{releaseDate}**");
-        caption.AppendLine($"*{mediaPayload.MediaType.ToString().ToUpper()}*\n");
-        caption.AppendLine(mediaPayload.Overview.Length > 800 ? mediaPayload.Overview[..800] + "..." : mediaPayload.Overview);
-
-        return caption.ToString();
-    }
-
-    private InlineKeyboardMarkup BuildKeyboard(MediaRenderingPayload mediaPayload, MediaSearchContext searchContext)
-    {
-        var row1 = new InlineKeyboardButton[1];
-
-        if (mediaPayload.Status is MediaStatus.Available)
-        {
-            row1[0] = InlineKeyboardButton.WithCallbackData(
-                "✅ Available",
-                new EmptyPayload().ToCallbackQueryString());
-        }
-        else if (mediaPayload.Status is MediaStatus.Pending or MediaStatus.Processing)
-        {
-            row1[0] = InlineKeyboardButton.WithCallbackData(
-                "⏳ Processing...",
-                new EmptyPayload().ToCallbackQueryString());
-        }
-        else
-        {
-            row1[0] = InlineKeyboardButton.WithCallbackData(
-                "⬇️ Download",
-                new RequestMediaPayload(mediaPayload.MediaType, mediaPayload.Id).ToCallbackQueryString());
-        }
-
-        var row2 = new List<InlineKeyboardButton>();
-
-        if (searchContext.CurrentIndex > 0)
-        {
-            row2.Add(InlineKeyboardButton.WithCallbackData(
-                "⬅️ Previous",
-                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex - 1).ToCallbackQueryString()));
-        }
-
-        if (searchContext.HasNext)
-        {
-            row2.Add(InlineKeyboardButton.WithCallbackData(
-                "➡️ Next",
-                new ChangeSearchPagePayload(searchContext.SearchId, searchContext.CurrentIndex + 1).ToCallbackQueryString()));
-        }
-
-        var keyboardRows = new List<IEnumerable<InlineKeyboardButton>> { row1 };
-
-        if (row2.Count > 0)
-        {
-            keyboardRows.Add(row2);
-        }
-
-        return new InlineKeyboardMarkup(keyboardRows);
     }
 }

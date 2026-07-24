@@ -5,28 +5,43 @@ namespace HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
 
 internal interface IMediaSearchPageRenderingStrategy
 {
-    public bool CanRender(MediaType mediaType);
+    public bool CanRender(MediaRenderingPayload mediaPayload);
 
     public TelegramMessage RenderMessage(MediaRenderingPayload mediaPayload, MediaSearchContext searchContext);
 }
 
-internal sealed record MediaRenderingPayload
+internal abstract record MediaRenderingPayload
 {
     public int Id { get; init; }
-
-    public required MediaType MediaType { get; init; }
 
     public required string Title { get; init; }
 
     public required string Overview { get; init; }
 
-    public required MediaStatus Status { get; init; }
-
-    public string? ReleaseDate { get; init; }
-
     public string? FirstAirDate { get; init; }
 
     public string? PosterPath { get; init; }
+}
+
+internal sealed record MovieRenderingPayload : MediaRenderingPayload
+{
+    public string? ReleaseDate { get; init; }
+
+    public required MediaStatus Status { get; init; }
+}
+
+internal sealed record SeriesRenderingPayload : MediaRenderingPayload
+{
+    public required Season[] Seasons { get; init; }
+
+    internal sealed record Season
+    {
+        public required int Id { get; init; }
+
+        public required int Number { get; init; }
+
+        public required MediaStatus Status { get; init; }
+    }
 }
 
 internal sealed record MediaSearchContext
