@@ -52,6 +52,9 @@ internal sealed record SeerSeriesMetadata
 {
     [JsonPropertyName("seasons")]
     public required SeerSeasonMetadata[] Seasons { get; init; }
+
+    [JsonPropertyName("requests")]
+    public required SeerSeriesRequest[] Requests { get; init; } = [];
 }
 
 internal sealed record SeerSeasonMetadata
@@ -61,4 +64,28 @@ internal sealed record SeerSeasonMetadata
 
     [JsonPropertyName("status")]
     public required SeerrMediaStatus Status { get; init; }
+
+    [JsonPropertyName("createdAt")]
+    public required DateTimeOffset CreatedAt { get; init; }
+
+    [JsonPropertyName("updatedAt")]
+    public required DateTimeOffset UpdatedAt { get; init; }
+}
+
+internal sealed record SeerSeriesRequest
+{
+    [JsonPropertyName("seasons")]
+    public SeerSeasonRequest[] Seasons { get; init; } = [];
+
+    [JsonPropertyName("createdAt")]
+    public required DateTimeOffset CreatedAt { get; init; }
+}
+
+internal sealed record SeerSeasonRequest
+{
+    [JsonPropertyName("seasonNumber")]
+    public required int SeasonNumber { get; init; }
+
+    [JsonPropertyName("status")]
+    public SeerrMediaStatus Status { get; init; } = SeerrMediaStatus.Unknown;
 }

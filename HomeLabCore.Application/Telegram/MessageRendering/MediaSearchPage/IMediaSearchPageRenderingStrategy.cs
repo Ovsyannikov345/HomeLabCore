@@ -1,5 +1,6 @@
 ﻿using HomeLabCore.Application.Telegram.Dto;
 using HomeLabCore.Domain.Constants.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
 
@@ -7,7 +8,11 @@ internal interface IMediaSearchPageRenderingStrategy
 {
     public bool CanRender(MediaRenderingPayload mediaPayload);
 
+    public bool CanRenderKeyboard(MediaType mediaType);
+
     public TelegramMessage RenderMessage(MediaRenderingPayload mediaPayload, MediaSearchContext searchContext);
+
+    public InlineKeyboardMarkup RenderKeyboardAfterRequest(InlineKeyboardMarkup keyboard, int? requestedSeason);
 }
 
 internal abstract record MediaRenderingPayload

@@ -14,6 +14,8 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
 
     public bool CanRender(MediaRenderingPayload mediaPayload) => mediaPayload is MovieRenderingPayload;
 
+    public bool CanRenderKeyboard(MediaType mediaType) => mediaType is MediaType.Movie;
+
     public TelegramMessage RenderMessage(MediaRenderingPayload mediaPayload, MediaSearchContext searchContext)
     {
         var moviePayload = (MovieRenderingPayload)mediaPayload;
@@ -30,6 +32,17 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
             Keyboard = keyboard,
             Photo = photo
         };
+    }
+
+    public InlineKeyboardMarkup RenderKeyboardAfterRequest(InlineKeyboardMarkup keyboard, int? requestedSeason)
+    {
+        IEnumerable<IEnumerable<InlineKeyboardButton>> updatedKeyboard =
+        [
+            [ new InlineKeyboardButton("✅ Requested", new EmptyPayload().ToCallbackQueryString())],
+            ..keyboard.InlineKeyboard.Skip(1)
+        ];
+
+        return new InlineKeyboardMarkup(updatedKeyboard);
     }
 
     private static string BuildCaption(MovieRenderingPayload moviePayload)
@@ -75,7 +88,7 @@ internal sealed class MovieSearchPageRenderingStrategy : IMediaSearchPageRenderi
         {
             actionRow[0] = InlineKeyboardButton.WithCallbackData(
                 "⬇️ Download",
-                new RequestMediaPayload(MediaType.Movie, moviePayload.Id).ToCallbackQueryString());
+                new RequestMediaPayload(MediaType.Movie, moviePayload.Id, SeasonNumber: null).ToCallbackQueryString());
         }
 
         var navigationRow = new List<InlineKeyboardButton>();

@@ -14,6 +14,8 @@ internal sealed class SeriesSearchPageRenderingStrategy : IMediaSearchPageRender
 
     public bool CanRender(MediaRenderingPayload mediaPayload) => mediaPayload is SeriesRenderingPayload;
 
+    public bool CanRenderKeyboard(MediaType mediaType) => mediaType is MediaType.Series;
+
     public TelegramMessage RenderMessage(MediaRenderingPayload mediaPayload, MediaSearchContext searchContext)
     {
         var seriesPayload = (SeriesRenderingPayload)mediaPayload;
@@ -30,6 +32,21 @@ internal sealed class SeriesSearchPageRenderingStrategy : IMediaSearchPageRender
             Keyboard = keyboard,
             Photo = photo
         };
+    }
+
+    public InlineKeyboardMarkup RenderKeyboardAfterRequest(InlineKeyboardMarkup keyboard, int? requestedSeason)
+    {
+        if (requestedSeason is null)
+        {
+            throw new ArgumentNullException(nameof(requestedSeason));
+        }
+
+        var updatedKeyboard = keyboard.InlineKeyboard.Select(
+            (keyboardRow, index) => index == requestedSeason - 1
+                ? [new InlineKeyboardButton($"Season {requestedSeason} - ✅ Requested", new EmptyPayload().ToCallbackQueryString())]
+                : keyboardRow);
+
+        return new InlineKeyboardMarkup(updatedKeyboard);
     }
 
     private static string BuildCaption(SeriesRenderingPayload seriesPayload)
@@ -73,7 +90,7 @@ internal sealed class SeriesSearchPageRenderingStrategy : IMediaSearchPageRender
 
                 _ => InlineKeyboardButton.WithCallbackData(
                     $"Season {season.Number} - ⬇️ Download",
-                    new RequestMediaPayload(MediaType.Series, seriesPayload.Id).ToCallbackQueryString())
+                    new RequestMediaPayload(MediaType.Series, seriesPayload.Id, season.Number).ToCallbackQueryString())
             };
 
             keyboardRows.Add(seasonActionRow);
