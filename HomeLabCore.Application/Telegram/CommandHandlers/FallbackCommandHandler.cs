@@ -1,5 +1,6 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace HomeLabCore.Application.Telegram.CommandHandlers;
 
@@ -15,6 +16,7 @@ public sealed class FallbackCommandHandler(ITelegramBotClient telegramBotClient)
         await telegramBotClient.SendMessage(
             chatId: message.Chat.Id,
             text: "Sorry, I don't know how to handle that. Use /help command to see the list of available commands.",
+            parseMode: ParseMode.Html,
             cancellationToken: ct
         );
     }

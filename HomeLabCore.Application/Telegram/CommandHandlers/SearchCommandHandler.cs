@@ -4,7 +4,9 @@ using HomeLabCore.Application.Interfaces.Database;
 using HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.Configuration;
 using HomeLabCore.Application.Telegram.Exceptions;
-using HomeLabCore.Application.Telegram.Services;
+using HomeLabCore.Application.Telegram.MessageRendering;
+using HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
+using HomeLabCore.Domain.Constants.Enums;
 using HomeLabCore.Domain.Entities.Media;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -34,13 +36,9 @@ internal sealed class SearchCommandHandler(
 
     protected override async Task ProcessUpdate(Message message, Message botResponseMessage, CancellationToken ct)
     {
-        var searchTerm = GetCommandArgument(message);
-
-        if (searchTerm is null)
-        {
-            throw new CommandProcessingException($"Please provide a media name. Example: `{HandlerOptions.CommandExample}`", showToUser: true);
-        }
-
+        var searchTerm = GetCommandArgument(message) 
+            ?? throw new CommandProcessingException($"Please provide a media name. Example: `{HandlerOptions.CommandExample}`", showToUser: true);
+        
         searchTerm = searchTerm.Trim();
 
         var searchResults = await mediaManagerClient.Search(searchTerm, SearchResultsTotalCount, ct);
@@ -69,12 +67,58 @@ internal sealed class SearchCommandHandler(
         dbContext.Add(searchSnapshot);
         await dbContext.SaveChanges(ct);
 
-        var mediaPage = messageRenderer.RenderMediaSearchPage(
-            media: searchResults[0],
-            searchId: searchSnapshot.Id,
-            currentIndex: 0,
-            hasNext: searchResults.Count > 1);
+        var mediaToShow = searchResults[0];
+
+        var renderingPayload = await GetMediaRenderingPayload(mediaToShow, ct);
+
+        var searchContext = new MediaSearchContext
+        {
+            SearchId = searchSnapshot.Id,
+            CurrentIndex = 0,
+            HasNext = searchResults.Count > 1
+        };
+
+        var mediaPage = messageRenderer.RenderMediaSearchPage(renderingPayload, searchContext);
 
         await RespondWithMessage(mediaPage, ct);
+    }
+
+    private async Task<MediaRenderingPayload> GetMediaRenderingPayload(ExternalMediaInfo mediaInfo, CancellationToken ct)
+    {
+        if (mediaInfo.MediaType is MediaType.Movie)
+        {
+            return new MovieRenderingPayload
+            {
+                Id = mediaInfo.Id,
+                Title = mediaInfo.Title,
+                Overview = mediaInfo.Overview,
+                Status = mediaInfo.Status,
+                ReleaseDate = mediaInfo.ReleaseDate,
+                FirstAirDate = mediaInfo.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath
+            };
+        }
+
+        if (mediaInfo.MediaType is MediaType.Series)
+        {
+            var seriesDetails = await mediaManagerClient.GetSeriesDetails(mediaInfo.Id, ct);
+
+            return new SeriesRenderingPayload
+            {
+                Id = seriesDetails.Id,
+                Title = seriesDetails.Name,
+                Overview = seriesDetails.Overview,
+                FirstAirDate = seriesDetails.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath,
+                Seasons = [.. seriesDetails.Seasons.Select(s => new SeriesRenderingPayload.Season
+                {
+                    Id = s.Id,
+                    Number = s.SeasonNumber,
+                    Status = s.Status
+                })]
+            };
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(mediaInfo), "Unknown media type");
     }
 }

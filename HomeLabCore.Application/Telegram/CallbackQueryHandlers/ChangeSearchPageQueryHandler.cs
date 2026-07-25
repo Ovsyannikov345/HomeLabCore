@@ -7,7 +7,8 @@ using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Payloads;
 using HomeLabCore.Application.Telegram.Configuration;
 using HomeLabCore.Application.Telegram.Constants;
 using HomeLabCore.Application.Telegram.Exceptions;
-using HomeLabCore.Application.Telegram.Services;
+using HomeLabCore.Application.Telegram.MessageRendering;
+using HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
 using HomeLabCore.Domain.Constants.Enums;
 using HomeLabCore.Domain.Entities.Media;
 using Microsoft.EntityFrameworkCore;
@@ -50,32 +51,70 @@ internal sealed class ChangeSearchPageQueryHandler(
 
         var mediaInfo = ExternalMediaInfo.FromSnapshot(snapshotEntry);
 
-        // If the user requested a media, snapshot status becomes irrelevant
-        try
-        {
-            // TODO handle series
-            if (mediaInfo.MediaType is MediaType.Movie)
-            {
-                mediaInfo = mediaInfo with
-                {
-                    Status = await mediaManagerClient.GetMediaStatus(snapshotEntry.MediaType, snapshotEntry.Id, ct)
-                };
-            }
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            Logger.FailedToFetchLatestMediaStatus(mediaInfo.MediaType, mediaInfo.Id);
-        }
+        var renderingPayload = await GetMediaRenderingPayload(mediaInfo, ct);
 
         var hasNext = payload.NextIndex < searchSnapshot.Results.Count - 1;
 
-        var mediaPage = messageRenderer.RenderMediaSearchPage(
-            media: mediaInfo,
-            searchId: payload.SearchId,
-            currentIndex: payload.NextIndex,
-            hasNext: hasNext);
+        var searchContext = new MediaSearchContext
+        {
+            SearchId = payload.SearchId,
+            CurrentIndex = payload.NextIndex,
+            HasNext = hasNext
+        };
+
+        var mediaPage = messageRenderer.RenderMediaSearchPage(renderingPayload, searchContext);
 
         await RespondWithMessage(mediaPage, ct);
         await DeleteOriginalMessage(CancellationToken.None);
+    }
+
+    private async Task<MediaRenderingPayload> GetMediaRenderingPayload(ExternalMediaInfo mediaInfo, CancellationToken ct)
+    {
+        if (mediaInfo.MediaType is MediaType.Movie)
+        {
+            var latestStatus = mediaInfo.Status;
+
+            try
+            {
+                latestStatus = await mediaManagerClient.GetMediaStatus(mediaInfo.MediaType, mediaInfo.Id, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Logger.FailedToFetchLatestMediaStatus(mediaInfo.MediaType, mediaInfo.Id);
+            }
+
+            return new MovieRenderingPayload
+            {
+                Id = mediaInfo.Id,
+                Title = mediaInfo.Title,
+                Overview = mediaInfo.Overview,
+                Status = latestStatus,
+                ReleaseDate = mediaInfo.ReleaseDate,
+                FirstAirDate = mediaInfo.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath
+            };
+        }
+
+        if (mediaInfo.MediaType is MediaType.Series)
+        {
+            var seriesDetails = await mediaManagerClient.GetSeriesDetails(mediaInfo.Id, ct);
+
+            return new SeriesRenderingPayload
+            {
+                Id = seriesDetails.Id,
+                Title = seriesDetails.Name,
+                Overview = seriesDetails.Overview,
+                FirstAirDate = seriesDetails.FirstAirDate,
+                PosterPath = mediaInfo.PosterPath,
+                Seasons = [.. seriesDetails.Seasons.Select(s => new SeriesRenderingPayload.Season
+                {
+                    Id = s.Id,
+                    Number = s.SeasonNumber,
+                    Status = s.Status
+                })]
+            };
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(mediaInfo), "Unknown media type");
     }
 }

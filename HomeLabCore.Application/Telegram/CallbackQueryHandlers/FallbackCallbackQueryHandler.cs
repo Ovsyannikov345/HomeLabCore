@@ -1,5 +1,6 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers;
 
@@ -20,6 +21,7 @@ internal class FallbackCallbackQueryHandler(ITelegramBotClient telegramBotClient
             await telegramBotClient.SendMessage(
                 chatId: message.Chat.Id,
                 text: "Sorry, I don't know how to handle that action.",
+                parseMode: ParseMode.Html,
                 cancellationToken: ct
             );
         }

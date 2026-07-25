@@ -18,5 +18,5 @@ internal sealed record SeerrMediaRequest
 
     [JsonPropertyName("seasons")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<int>? Seasons { get; init; }
+    public int[]? Seasons { get; init; }
 }

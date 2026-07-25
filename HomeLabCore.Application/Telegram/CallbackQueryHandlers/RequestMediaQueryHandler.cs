@@ -5,16 +5,17 @@ using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Payloads;
 using HomeLabCore.Application.Telegram.Configuration;
 using HomeLabCore.Application.Telegram.Constants;
 using HomeLabCore.Application.Telegram.Exceptions;
+using HomeLabCore.Application.Telegram.MessageRendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers;
 
 internal sealed class RequestMediaQueryHandler(
     ITelegramBotClient telegramBotClient,
     IMediaManagerClient mediaManagerClient,
+    IMessageRenderer messageRenderer,
     IOptionsSnapshot<TelegramSettings> options,
     ILogger<RequestMediaQueryHandler> logger)
     : CallbackQueryHandlerBase<RequestMediaPayload>(telegramBotClient, options, logger)
@@ -27,16 +28,26 @@ internal sealed class RequestMediaQueryHandler(
     {
         try
         {
-            await mediaManagerClient.RequestMedia(payload.MediaType, payload.MediaId, ct);
+            if (payload.IsMovie)
+            {
+                await mediaManagerClient.RequestMovie(payload.MediaId, ct);
+
+                Logger.RequestedMovie(payload.MediaId);
+            }
+            else if (payload.IsSeries)
+            {
+                await mediaManagerClient.RequestSeries(payload.MediaId, [payload.SeasonNumber.Value], ct);
+
+                Logger.RequestedSeries(payload.MediaId, payload.SeasonNumber.Value);
+            }
+
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (ex is not (OperationCanceledException or CallbackQueryProcessingException))
         {
             Logger.FailedToRequestMedia(payload.MediaType, payload.MediaId, ex);
 
             throw new CallbackQueryProcessingException("Failed to request media", showToUser: true);
         }
-
-        Logger.RequestedMedia(payload.MediaType, payload.MediaId);
 
         var keyboard = context.SourceMessage.ReplyMarkup;
 
@@ -45,12 +56,8 @@ internal sealed class RequestMediaQueryHandler(
             return;
         }
 
-        IEnumerable<IEnumerable<InlineKeyboardButton>> updatedKeyboard =
-        [
-            [ new InlineKeyboardButton("✅ Requested", new EmptyPayload().ToCallbackQueryString())],
-            ..keyboard.InlineKeyboard.Skip(1)
-        ];
+        var updatedKeyboard = messageRenderer.RenderKeyboardAfterRequest(keyboard, payload.MediaType, payload.SeasonNumber);
 
-        await UpdateMessageKeyboard(new InlineKeyboardMarkup(updatedKeyboard), ct);
+        await UpdateMessageKeyboard(updatedKeyboard, ct);
     }
 }

@@ -73,8 +73,8 @@ internal abstract class CommandHandlerBase(
 
                 await BotClient.SendMessage(
                     chatId: message.Chat.Id,
-                    text: $"❌ **Access denied.**",
-                    parseMode: ParseMode.Markdown,
+                    text: $"❌ <b>Access denied.</b>",
+                    parseMode: ParseMode.Html,
                     cancellationToken: ct);
 
                 return;
@@ -82,8 +82,8 @@ internal abstract class CommandHandlerBase(
 
             botResponseMessage = await BotClient.SendMessage(
                 chatId: message.Chat.Id,
-                text: "⏳ **Processing request...**",
-                parseMode: ParseMode.Markdown,
+                text: "⏳ <b>Processing request...</b>",
+                parseMode: ParseMode.Html,
                 cancellationToken: ct);
 
             _context = new CommandContext
@@ -126,7 +126,7 @@ internal abstract class CommandHandlerBase(
             chatId: _context.BotResponseMessage.Chat.Id,
             messageId: _context.BotResponseMessage.MessageId,
             text: text,
-            parseMode: ParseMode.Markdown,
+            parseMode: ParseMode.Html,
             cancellationToken: ct);
 
         Logger.UpdatedTextForMessage(_context.BotResponseMessage.MessageId);
@@ -142,7 +142,7 @@ internal abstract class CommandHandlerBase(
                 chatId: _context.UserMessage.Chat.Id,
                 photo: message.Photo,
                 caption: message.Caption,
-                parseMode: ParseMode.Markdown,
+                parseMode: ParseMode.Html,
                 replyMarkup: message.Keyboard,
                 cancellationToken: ct);
         }
@@ -151,7 +151,7 @@ internal abstract class CommandHandlerBase(
             await BotClient.SendMessage(
                 chatId: _context.UserMessage.Chat.Id,
                 text: message.Caption,
-                parseMode: ParseMode.Markdown,
+                parseMode: ParseMode.Html,
                 replyMarkup: message.Keyboard,
                 cancellationToken: ct);
         }
@@ -180,12 +180,12 @@ internal abstract class CommandHandlerBase(
         var responseMessage = ex switch
         {
             CommandProcessingException commandEx when commandEx.ShowMessageToUser
-                => $"❌ **{ex.Message}**",
+                => $"❌ <b>{ex.Message}</b>",
 
             CommandProcessingException commandEx when !commandEx.ShowMessageToUser
-                => $"❌ **Something went wrong while processing the command :(** \n\n🔍 Correlation ID: {CorrelationContext.CorrelationId}",
+                => $"❌ <b>Something went wrong while processing the command :(</b> \n\n🔍 Correlation ID: {CorrelationContext.CorrelationId}",
 
-            _ => $"❌ **Something went wrong while processing the command :(** \n\n🔍 Correlation ID: {CorrelationContext.CorrelationId}"
+            _ => $"❌ <b>Something went wrong while processing the command :(</b> \n\n🔍 Correlation ID: {CorrelationContext.CorrelationId}"
         };
 
         if (botResponseMessage is null)
@@ -193,7 +193,7 @@ internal abstract class CommandHandlerBase(
             await BotClient.SendMessage(
                 chatId: originalMessage.Chat.Id,
                 text: responseMessage,
-                parseMode: ParseMode.Markdown,
+                parseMode: ParseMode.Html,
                 cancellationToken: ct);
         }
         else
@@ -202,7 +202,7 @@ internal abstract class CommandHandlerBase(
                 chatId: botResponseMessage.Chat.Id,
                 messageId: botResponseMessage.MessageId,
                 text: responseMessage,
-                parseMode: ParseMode.Markdown,
+                parseMode: ParseMode.Html,
                 cancellationToken: ct);
         }
     }

@@ -82,8 +82,14 @@ internal static partial class ApplicationLogs
     [LoggerMessage(
         EventId = 3_0001_0013,
         Level = LogLevel.Information,
-        Message = "Media requested successfully. Media Type: {MediaType}. Media ID: {MediaId}")]
-    public static partial void RequestedMedia(this ILogger logger, MediaType mediaType, int mediaId);
+        Message = "Movie requested successfully. Media ID: {MediaId}")]
+    public static partial void RequestedMovie(this ILogger logger, int mediaId);
+
+    [LoggerMessage(
+        EventId = 3_0001_0014,
+        Level = LogLevel.Information,
+        Message = "Series requested successfully. Media ID: {MediaId}. Season number: {SeasonNumber}")]
+    public static partial void RequestedSeries(this ILogger logger, int mediaId, int seasonNumber);
 
     #endregion
 
