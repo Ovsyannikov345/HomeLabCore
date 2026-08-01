@@ -10,6 +10,8 @@ internal sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext
 {
     public DbSet<MediaSearchSnapshot> MediaSearchSnapshots => Set<MediaSearchSnapshot>();
 
+    public DbSet<MediaSubscription> MediaSubscriptions => Set<MediaSubscription>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

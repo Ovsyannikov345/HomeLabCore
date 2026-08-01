@@ -182,4 +182,14 @@ internal static partial class ApplicationLogs
     public static partial void WebhookProcessed(this ILogger logger);
 
     #endregion
+
+    #region Media Notifications
+
+    [LoggerMessage(
+        EventId = 3_0005_0001,
+        Level = LogLevel.Warning,
+        Message = "Failed to subscribe to media notifications")]
+    public static partial void FailedToSubscribeToMedia(this ILogger logger, Exception ex);
+
+    #endregion
 }
