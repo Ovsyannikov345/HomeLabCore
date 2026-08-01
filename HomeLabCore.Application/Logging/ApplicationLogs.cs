@@ -138,4 +138,48 @@ internal static partial class ApplicationLogs
     public static partial void UpdatedTextForMessage(this ILogger logger, long? messageId);
 
     #endregion
+
+    #region Background Processing
+
+    [LoggerMessage(
+        EventId = 3_0003_0001,
+        Level = LogLevel.Error,
+        Message = "Background processing message is dropped. Reason: {Reason}")]
+    public static partial void BackgroundProcessingMessageDropped(this ILogger logger, string reason);
+
+    [LoggerMessage(
+        EventId = 3_0003_0002,
+        Level = LogLevel.Information,
+        Message = "Background processing message is sent")]
+    public static partial void BackgroundProcessingMessageSent(this ILogger logger);
+
+    #endregion
+
+    #region Webhook Processing
+
+    [LoggerMessage(
+        EventId = 3_0004_0001,
+        Level = LogLevel.Error,
+        Message = "Failed to deserialize webhook payload. Raw payload: {RawPayload}")]
+    public static partial void FailedToDeserializeWebhook(this ILogger logger, string rawPayload, Exception ex);
+
+    [LoggerMessage(
+        EventId = 3_0004_0002,
+        Level = LogLevel.Error,
+        Message = "Failed to handle webhook. Reason: {Reason}")]
+    public static partial void FailedToHandleWebhook(this ILogger logger, string reason);
+
+    [LoggerMessage(
+        EventId = 3_0004_0003,
+        Level = LogLevel.Error,
+        Message = "Failed to handle webhook")]
+    public static partial void FailedToHandleWebhook(this ILogger logger, Exception ex);
+
+    [LoggerMessage(
+        EventId = 3_0004_0004,
+        Level = LogLevel.Information,
+        Message = "Webhook processed successfully")]
+    public static partial void WebhookProcessed(this ILogger logger);
+
+    #endregion
 }

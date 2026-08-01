@@ -1,10 +1,14 @@
-﻿using HomeLabCore.Application.Telegram.CallbackQueryHandlers;
+﻿using HomeLabCore.Application.Background.Webhooks;
+using HomeLabCore.Application.Telegram.CallbackQueryHandlers;
 using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.CommandHandlers;
 using HomeLabCore.Application.Telegram.CommandHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.Configuration;
 using HomeLabCore.Application.Telegram.MessageRendering;
 using HomeLabCore.Application.Telegram.MessageRendering.MediaSearchPage;
+using HomeLabCore.Application.Webhooks;
+using HomeLabCore.Application.Webhooks.WebhookHandlers.Abstractions;
+using HomeLabCore.Application.Webhooks.WebhookHandlers.Seerr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -29,6 +33,13 @@ public static class DependencyInjection
             .AddScoped<IMessageRenderer, MessageRenderer>()
             .AddScoped<IMediaSearchPageRenderingStrategy, MovieSearchPageRenderingStrategy>()
             .AddScoped<IMediaSearchPageRenderingStrategy, SeriesSearchPageRenderingStrategy>();
+
+        services
+            .AddScoped<IWebhookService, WebhookService>()
+            .RegisterWebhookHandlers()
+            .AddSingleton<WebhooksChannel>()
+            .AddSingleton<IWebhookEventReader>(sp => sp.GetRequiredService<WebhooksChannel>())
+            .AddSingleton<IWebhookEventWriter>(sp => sp.GetRequiredService<WebhooksChannel>());
 
         // Handlers
         services.RegisterTelegramHandlers();
@@ -55,5 +66,10 @@ public static class DependencyInjection
         services.AddScoped<IFallbackCallbackQueryHandler, FallbackCallbackQueryHandler>();
 
         return services;
+    }
+
+    private static IServiceCollection RegisterWebhookHandlers(this IServiceCollection services)
+    {
+        return services.AddScoped<IWebhookHandler, SeerrWebhookHandler>();
     }
 }

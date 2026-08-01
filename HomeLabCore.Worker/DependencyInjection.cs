@@ -1,4 +1,5 @@
 ﻿using HomeLabCore.Worker.TelegramPolling;
+using HomeLabCore.Worker.Webhooks;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
@@ -10,8 +11,8 @@ public static class DependencyInjection
     {
         Log.Information("Configuring HomeLabCore.Worker services...");
 
-        // Background Services
         services.AddHostedService<TelegramPollingWorker>();
+        services.AddHostedService<WebhookProcessingWorker>();
 
         return services;
     }

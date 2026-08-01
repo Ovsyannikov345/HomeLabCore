@@ -25,7 +25,9 @@ try
 
     app.UseSerilogRequestLogging();
 
-    app.MapEndpoints();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllers();
 
     await app.InitializeApplication();
 

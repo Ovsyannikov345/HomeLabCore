@@ -1,20 +1,10 @@
-﻿using HomeLabCore.Api.Endpoints;
-using HomeLabCore.Application.Interfaces;
+﻿using HomeLabCore.Application.Interfaces;
 using Serilog;
 
 namespace HomeLabCore.Api.Setup;
 
 public static class WebApplicationExtensions
 {
-    public static WebApplication MapEndpoints(this WebApplication application)
-    {
-        application
-            .MapGroup("/api")
-            .MapHealthEndpoints();
-
-        return application;
-    }
-
     public static async Task InitializeApplication(this WebApplication app)
     {
         Log.Information("Initalizing the application...");
