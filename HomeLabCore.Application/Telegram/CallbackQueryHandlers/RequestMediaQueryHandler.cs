@@ -66,6 +66,7 @@ internal sealed class RequestMediaQueryHandler(
         dbContext.Add(new MediaSubscription
         {
             UserId = context.CallbackQuery.From.Id,
+            ChatId = context.SourceMessage.Chat.Id,
             MediaExternalId = payload.MediaId,
             MediaType = payload.MediaType
         });

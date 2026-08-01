@@ -4,7 +4,9 @@ namespace HomeLabCore.Domain.Entities.Media;
 
 public sealed class MediaSubscription : EntityBase
 {
-    public long UserId { get; set; }
+    public required long UserId { get; set; }
+
+    public required long ChatId { get; set; }
 
     public required MediaType MediaType { get; set; }
 
