@@ -1,5 +1,6 @@
 using HomeLabCore.Application.Constants.Enums;
 using HomeLabCore.Application.Interfaces.Database;
+using HomeLabCore.Application.Logging;
 using HomeLabCore.Application.Webhooks.WebhookHandlers.Abstractions;
 using HomeLabCore.Application.Webhooks.WebhookHandlers.Exceptions;
 using HomeLabCore.Domain.Constants.Enums;
@@ -74,11 +75,20 @@ internal sealed class SeerrWebhookHandler(
             .Where(s => s.MediaType == mediaType && s.MediaExternalId == mediaId)
             .ToListAsync(ct);
 
-        // TODO better check duplicates before subscribing (and maybe a UNIQUE index)
         foreach (var subscription in mediaSubscriptions.DistinctBy(s => s.UserId))
         {
             // TODO use renderer
             await telegramBotClient.SendMessage(subscription.ChatId, payload.Event, cancellationToken: ct);
+        }
+
+        if (payload.NotificationType is SeerNotificationTypes.MediaAvailable
+                                     or SeerNotificationTypes.MediaFailed
+                                     or SeerNotificationTypes.MediaDeclined)
+        {
+            dbContext.RemoveRange(mediaSubscriptions);
+            await dbContext.SaveChanges(ct);
+            
+            Logger.DeletedMediaSubscriptions(mediaSubscriptions.Count, mediaType, mediaId);
         }
     }
 

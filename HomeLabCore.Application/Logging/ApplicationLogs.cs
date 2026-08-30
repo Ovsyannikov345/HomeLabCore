@@ -203,5 +203,11 @@ internal static partial class ApplicationLogs
         Message = "Failed to subscribe to media notifications")]
     public static partial void FailedToSubscribeToMedia(this ILogger logger, Exception ex);
 
+    [LoggerMessage(
+        EventId = 3_0005_0002,
+        Level = LogLevel.Information,
+        Message = "Deleted {Count} media subscriptions for media type {MediaType} and media ID {MediaId}")]
+    public static partial void DeletedMediaSubscriptions(this ILogger logger, int count, MediaType mediaType, int mediaId);
+
     #endregion
 }
