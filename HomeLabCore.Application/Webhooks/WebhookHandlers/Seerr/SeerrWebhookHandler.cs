@@ -9,12 +9,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
+using HomeLabCore.Application.Telegram.MessageRendering;
 
 namespace HomeLabCore.Application.Webhooks.WebhookHandlers.Seerr;
 
 internal sealed class SeerrWebhookHandler(
     IApplicationDbContext dbContext,
     ITelegramBotClient telegramBotClient,
+    IMessageRenderer messageRenderer,
     ILogger<SeerrWebhookHandler> logger)
     : WebhookHandlerBase<SeerrWebhookPayload>(logger)
 {
@@ -75,10 +78,16 @@ internal sealed class SeerrWebhookHandler(
             .Where(s => s.MediaType == mediaType && s.MediaExternalId == mediaId)
             .ToListAsync(ct);
 
+        var message = messageRenderer.RenderSeerrNotification(payload);
+
         foreach (var subscription in mediaSubscriptions.DistinctBy(s => s.UserId))
         {
-            // TODO use renderer
-            await telegramBotClient.SendMessage(subscription.ChatId, payload.Event, cancellationToken: ct);
+            await telegramBotClient.SendMessage(
+                chatId: subscription.ChatId,
+                text: message.Caption,
+                parseMode: ParseMode.Html,
+                replyMarkup: message.Keyboard,
+                cancellationToken: ct);
         }
 
         if (payload.NotificationType is SeerNotificationTypes.MediaAvailable
