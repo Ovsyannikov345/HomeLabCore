@@ -1,4 +1,4 @@
-﻿using HomeLabCore.Application.Constants.Enums;
+using HomeLabCore.Application.Constants.Enums;
 using HomeLabCore.Application.Interfaces.Database;
 using HomeLabCore.Application.Webhooks.WebhookHandlers.Abstractions;
 using HomeLabCore.Application.Webhooks.WebhookHandlers.Exceptions;
@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 
 namespace HomeLabCore.Application.Webhooks.WebhookHandlers.Seerr;
 
@@ -49,7 +48,8 @@ internal sealed class SeerrWebhookHandler(
 
     private Task HandleTestNotification()
     {
-        // TODO log
+        Logger.SeerrTestNotificationReceived();
+
         return Task.CompletedTask;
     }
 
@@ -84,7 +84,8 @@ internal sealed class SeerrWebhookHandler(
 
     private Task HandleUnknownNotification(SeerrWebhookPayload payload, CancellationToken ct)
     {
-        // TODO log
+        Logger.SeerrUnknownNotificationReceived(payload.NotificationType);
+        
         return Task.CompletedTask;
     }
 }

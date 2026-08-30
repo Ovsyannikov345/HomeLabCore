@@ -1,4 +1,4 @@
-﻿using HomeLabCore.Domain.Constants.Enums;
+using HomeLabCore.Domain.Constants.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace HomeLabCore.Application.Logging;
@@ -180,6 +180,18 @@ internal static partial class ApplicationLogs
         Level = LogLevel.Information,
         Message = "Webhook processed successfully")]
     public static partial void WebhookProcessed(this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 3_0004_0005,
+        Level = LogLevel.Information,
+        Message = "Seerr test notification received")]
+    public static partial void SeerrTestNotificationReceived(this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 3_0004_0006,
+        Level = LogLevel.Warning,
+        Message = "Seerr unknown notification received. Notification type: {NotificationType}")]
+    public static partial void SeerrUnknownNotificationReceived(this ILogger logger, string? notificationType);
 
     #endregion
 
