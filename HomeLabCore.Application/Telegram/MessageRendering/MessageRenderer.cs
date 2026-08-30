@@ -35,14 +35,9 @@ internal class MessageRenderer(IEnumerable<IMediaSearchPageRenderingStrategy> se
 
     public TelegramMessage RenderSeerrNotification(SeerrWebhookPayload payload)
     {
-        var caption = new StringBuilder();
-
-        caption.AppendLine($"🔔 <b>{payload.Subject}</b>\n");
-        caption.AppendLine(payload.Message);
-
         return new TelegramMessage()
         {
-            Caption = caption.ToString(),
+            Caption = $"🔔 <b>{payload.Subject} - {payload.Event}</b>\n",
             Keyboard = null,
             Photo = null
         };
