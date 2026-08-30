@@ -1,4 +1,5 @@
 ﻿using HomeLabCore.Application.Interfaces.Clients;
+using HomeLabCore.Application.Interfaces.Database;
 using HomeLabCore.Application.Logging;
 using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Abstractions;
 using HomeLabCore.Application.Telegram.CallbackQueryHandlers.Payloads;
@@ -6,6 +7,7 @@ using HomeLabCore.Application.Telegram.Configuration;
 using HomeLabCore.Application.Telegram.Constants;
 using HomeLabCore.Application.Telegram.Exceptions;
 using HomeLabCore.Application.Telegram.MessageRendering;
+using HomeLabCore.Domain.Entities.Media;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
@@ -13,6 +15,7 @@ using Telegram.Bot;
 namespace HomeLabCore.Application.Telegram.CallbackQueryHandlers;
 
 internal sealed class RequestMediaQueryHandler(
+    IApplicationDbContext dbContext,
     ITelegramBotClient telegramBotClient,
     IMediaManagerClient mediaManagerClient,
     IMessageRenderer messageRenderer,
@@ -59,5 +62,22 @@ internal sealed class RequestMediaQueryHandler(
         var updatedKeyboard = messageRenderer.RenderKeyboardAfterRequest(keyboard, payload.MediaType, payload.SeasonNumber);
 
         await UpdateMessageKeyboard(updatedKeyboard, ct);
+
+        dbContext.Add(new MediaSubscription
+        {
+            UserId = context.CallbackQuery.From.Id,
+            ChatId = context.SourceMessage.Chat.Id,
+            MediaExternalId = payload.MediaId,
+            MediaType = payload.MediaType
+        });
+
+        try
+        {
+            await dbContext.SaveChanges(ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Logger.FailedToSubscribeToMedia(ex);
+        }
     }
 }

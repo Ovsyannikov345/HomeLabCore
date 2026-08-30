@@ -21,7 +21,7 @@ internal static partial class ApplicationLogs
     [LoggerMessage(
         EventId = 1_0001_0003,
         Level = LogLevel.Critical,
-        Message = "Telegram polling worked encountered an exception")]
+        Message = "Telegram polling worker encountered an exception")]
     public static partial void TelegramUpdatePollingWorkerCrashed(this ILogger logger, Exception ex);
 
     [LoggerMessage(
@@ -59,6 +59,28 @@ internal static partial class ApplicationLogs
         Level = LogLevel.Warning,
         Message = "Failed to determine handler for a callback query. Raw query data: \"{QueryData}\"")]
     public static partial void FailedToDetermineCallbackQueryHandler(this ILogger logger, string? queryData);
+
+    #endregion
+
+    #region Webhook Processing
+
+    [LoggerMessage(
+        EventId = 1_0002_0001,
+        Level = LogLevel.Information,
+        Message = "Webhook processing worker is starting...")]
+    public static partial void StartingWebhookProcessing(this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 1_0002_0002,
+        Level = LogLevel.Information,
+        Message = "Stopping webhook processing worker because application is shutting down.")]
+    public static partial void WebhookProcessingStopped(this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 1_0002_0003,
+        Level = LogLevel.Critical,
+        Message = "Webook processing worker encountered an exception")]
+    public static partial void WebhookProcessingError(this ILogger logger, Exception ex);
 
     #endregion
 }

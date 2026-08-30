@@ -1,5 +1,9 @@
-﻿using HomeLabCore.Application;
+﻿using HomeLabCore.Api.Authorization;
+using HomeLabCore.Api.Configuration;
+using HomeLabCore.Api.Constants;
+using HomeLabCore.Application;
 using HomeLabCore.Infrastructure;
+using Microsoft.AspNetCore.Authentication;
 using Serilog;
 
 namespace HomeLabCore.Api.Setup;
@@ -18,7 +22,7 @@ public static class DependencyInjection
             .AddInfrastructureServices(configuration)
             .AddApplicationServices(configuration)
             .AddWorkerServices()
-            .AddApiServices();
+            .AddApiServices(configuration);
     }
 
     private static void AddLogging(this WebApplicationBuilder applicationBuilder)
@@ -29,10 +33,34 @@ public static class DependencyInjection
             .Enrich.FromLogContext());
     }
 
-    private static IServiceCollection AddApiServices(this IServiceCollection services)
+    private static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         Log.Information("Configuring HomeLabCore.API services...");
 
-        return services.AddOpenApi();
+        services
+            .ConfigureAuthentication(configuration)
+            .ConfigureAuthorization();
+
+        services.AddControllers();
+        services.AddOpenApi();
+
+        return services;
+    }
+
+    private static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<ApiKeyAuthenticationSettings>(
+            configuration.GetSection(ApiKeyAuthenticationSettings.SectionName));
+
+        services
+            .AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>(AuthenticationSchemes.ApiKey, _ => { });
+
+        return services;
+    }
+
+    private static IServiceCollection ConfigureAuthorization(this IServiceCollection services)
+    {
+        return services.AddAuthorization();
     }
 }
